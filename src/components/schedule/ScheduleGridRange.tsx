@@ -100,25 +100,21 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
   }, [sessions]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, cellKey: string) => {
-    // Right click = deselect mode
     if (e.button === 2) {
       e.preventDefault();
       dragModeRef.current = 'deselect';
       setIsDragging(true);
       onDeselectCell(cellKey);
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
       return;
     }
-    // Left click = select mode
     if (e.button === 0) {
       dragModeRef.current = 'select';
       setIsDragging(true);
       onSelectCell(cellKey);
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     }
   }, [onSelectCell, onDeselectCell]);
 
-  const handlePointerEnter = useCallback((cellKey: string) => {
+  const handlePointerOver = useCallback((cellKey: string) => {
     if (!isDragging || !dragModeRef.current) return;
     if (dragModeRef.current === 'select') {
       onSelectCell(cellKey);
