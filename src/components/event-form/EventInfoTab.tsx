@@ -248,7 +248,7 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
       </FormSection>
 
       {/* New Category Dialog */}
-      <Dialog open={newCatDialogOpen} onOpenChange={setNewCatDialogOpen}>
+      <Dialog open={newCatDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Новая категория</DialogTitle>
