@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Plus } from 'lucide-react';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, pad2 } from '@/lib/sessions';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -214,6 +214,14 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="relative z-10 flex flex-col gap-0.5">
+                              <button
+                                type="button"
+                                onClick={() => onToggleCell(cellKey)}
+                                className="absolute top-0 right-0 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] leading-none hover:bg-primary/80 transition-colors"
+                                title="Добавить сеанс"
+                              >
+                                <Plus className="h-2.5 w-2.5" />
+                              </button>
                               {agg.sessions.map((s) => {
                                 const isActive = selectedSessionId === s.id;
                                 const sold = s.soldCount ?? 0;
