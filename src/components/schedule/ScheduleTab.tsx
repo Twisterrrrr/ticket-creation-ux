@@ -122,8 +122,8 @@ export function ScheduleTab() {
     return d >= from && d <= to && s.isCancelled;
   }).length, [sessions, from, to]);
 
-  useEffect(() => { setSelectionDay(new Set()); setAddCountsDay(new Map()); }, [from]);
-  useEffect(() => { setSelectionRange(new Set()); setAddCountsRange(new Map()); }, [from, rangeDays]);
+  useEffect(() => { setSelectionDay(new Set()); }, [from]);
+  useEffect(() => { setSelectionRange(new Set()); }, [from, rangeDays]);
 
   const gridConfig = useMemo(() => ({ slotMinutes: 15, slotPx: 24, dayStartHour: 0, dayEndHourExclusive: 24 }), []);
   const todayDateStr = isoToday();
