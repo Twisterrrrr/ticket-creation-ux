@@ -150,10 +150,10 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
                   return (
                     <td
                       key={hour}
-                      className={`relative border-t border-r border-border px-1 py-1 align-top ${sessionCount >= 3 ? 'min-w-[120px]' : 'min-w-[56px]'} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`relative border-t border-r border-border px-1 py-1 align-top min-w-[56px] ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                      <div className={`relative z-10 ${sessionCount >= 3 ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-1'}`}>
+                      <div className={`relative z-10 ${sessionCount >= 3 ? 'grid grid-cols-2 gap-1' : 'flex flex-col gap-1'}`} style={sessionCount >= 3 ? { width: '120px' } : undefined}>
                           <button
                             type="button"
                             onClick={() => onToggleSlot(makeIso(hour, minute))}

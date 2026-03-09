@@ -205,7 +205,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                   return (
                     <td
                       key={h}
-                      className={`relative border-t border-r border-border px-0.5 py-0.5 align-top ${sessionCount >= 3 ? 'min-w-[96px]' : 'min-w-[44px]'} ${isDropTarget ? 'bg-primary/20' : ''}`}
+                      className={`relative border-t border-r border-border px-0.5 py-0.5 align-top min-w-[44px] ${isDropTarget ? 'bg-primary/20' : ''}`}
                       onDragOver={(e) => handleCellDragOver(e, cellKey)}
                       onDragLeave={handleCellDragLeave}
                       onDrop={(e) => handleCellDrop(e, cellKey)}
@@ -213,7 +213,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       {hasSessions ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className={`relative z-10 ${sessionCount >= 3 ? 'grid grid-cols-2 gap-0.5' : 'flex flex-col gap-0.5'}`}>
+                            <div className={`relative z-10 ${sessionCount >= 3 ? 'grid grid-cols-2 gap-0.5' : 'flex flex-col gap-0.5'}`} style={sessionCount >= 3 ? { width: '96px' } : undefined}>
                               <button
                                 type="button"
                                 onClick={() => onToggleCell(cellKey)}
