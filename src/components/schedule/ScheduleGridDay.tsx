@@ -9,17 +9,20 @@ type Props = {
   date: string;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridSelection;
+  addCounts: Map<string, number>;
+  selectedSessionId: string | null;
   onToggleSlot: (startsAtIso: string) => void;
   onSelectSlot: (startsAtIso: string) => void;
   onDeselectSlot: (startsAtIso: string) => void;
-  onEditSession: (session: AdminEventSessionRow) => void;
+  onSelectSession: (session: AdminEventSessionRow) => void;
+  onIncrementAdd: (slotKey: string) => void;
 };
 
 const GRID_HOURS: number[] = [];
 for (let h = 0; h <= 23; h += 1) GRID_HOURS.push(h);
 const STEP_MINUTES = 15;
 
-export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSelectSlot, onDeselectSlot, onEditSession }: Props) {
+export function ScheduleGridDay({ date, sessions, selection, addCounts, selectedSessionId, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession, onIncrementAdd }: Props) {
   const minutesRows = useMemo(() => {
     const rows: number[] = [];
     for (let m = 0; m < 60; m += STEP_MINUTES) rows.push(m);
@@ -30,7 +33,6 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
   const [isDragging, setIsDragging] = useState(false);
   const dragModeRef = useRef<'select' | 'deselect' | null>(null);
 
-  // Support multiple sessions per slot
   const sessionsByKey = useMemo(() => {
     const map = new Map<string, AdminEventSessionRow[]>();
     for (const s of sessions) {
@@ -46,17 +48,8 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
   const makeIso = (hour: number, minute: number) =>
     new Date(`${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`).toISOString();
 
-  const handleCellClick = (hour: number, minute: number) => {
-    const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    const slotSessions = sessionsByKey.get(key);
-    if (slotSessions?.length) {
-      onEditSession(slotSessions[0]);
-    }
-  };
-
   const handlePointerDown = useCallback((e: React.PointerEvent, hour: number, minute: number) => {
     const iso = makeIso(hour, minute);
-
     if (e.button === 2) {
       e.preventDefault();
       dragModeRef.current = 'deselect';
@@ -154,7 +147,7 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
                   const slotSessions = sessionsByKey.get(key);
                   const hasSession = !!slotSessions?.length;
                   const selected = isSelected(hour, minute);
-                  const sessionCount = slotSessions?.length ?? 0;
+                  const addCount = addCounts.get(key) ?? 0;
 
                   return (
                     <td
@@ -163,28 +156,44 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
                     >
                       {hasSession ? (
                         <div className="relative">
+                          <div className="flex flex-col gap-0.5">
+                            {slotSessions.map((s) => {
+                              const isActive = selectedSessionId === s.id;
+                              const sold = s.soldCount ?? 0;
+                              const cap = s.capacity ?? '∞';
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => onSelectSession(s)}
+                                  className={`flex items-center justify-center rounded border px-1 py-0.5 text-[10px] transition-colors ${
+                                    isActive
+                                      ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
+                                      : s.isCancelled
+                                        ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
+                                        : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                                  }`}
+                                >
+                                  <span className="truncate">
+                                    {formatTimeRu(s.startsAt)}
+                                    <span className="ml-1 text-[9px] opacity-70">{sold}/{cap}</span>
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {/* "+" button increments add count */}
                           <button
                             type="button"
-                            onClick={() => handleCellClick(hour, minute)}
-                            className="flex h-7 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80 text-[10px] transition-colors"
-                            title={`${slotSessions.map(s => formatTimeRu(s.startsAt)).join(', ')} · ${sessionCount} сеанс(ов)`}
-                          >
-                            <span className="truncate">
-                              {sessionCount > 1 ? `${sessionCount}` : formatTimeRu(slotSessions[0].startsAt)}
-                            </span>
-                          </button>
-                          {/* Add more sessions to this slot */}
-                          <button
-                            type="button"
-                            onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e, hour, minute); }}
+                            onClick={(e) => { e.stopPropagation(); onIncrementAdd(key); }}
                             className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] transition-colors ${
-                              selected
+                              addCount > 0
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
                             }`}
-                            title="Добавить ещё сеанс в этот слот"
+                            title={addCount > 0 ? `Добавить ${addCount} сеанс(ов)` : 'Добавить ещё сеанс'}
                           >
-                            <Plus className="h-2.5 w-2.5" />
+                            {addCount > 0 ? addCount : <Plus className="h-2.5 w-2.5" />}
                           </button>
                         </div>
                       ) : (

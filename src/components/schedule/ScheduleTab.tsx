@@ -19,6 +19,7 @@ import { EditSessionDialog } from '@/components/schedule/EditSessionDialog';
 import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
+import { SessionActionBar } from '@/components/schedule/SessionActionBar';
 import { DragLayer } from '@/components/schedule/DragLayer';
 import { useSessionDrag } from '@/components/schedule/useSessionDrag';
 
@@ -88,6 +89,13 @@ export function ScheduleTab() {
   const [batchOpenDay, setBatchOpenDay] = useState(false);
   const [batchOpenRange, setBatchOpenRange] = useState(false);
 
+  // Selected session for action bar
+  const [selectedSession, setSelectedSession] = useState<AdminEventSessionRow | null>(null);
+
+  // Add counts for "+" button (key -> count of sessions to add)
+  const [addCountsDay, setAddCountsDay] = useState<Map<string, number>>(new Map());
+  const [addCountsRange, setAddCountsRange] = useState<Map<string, number>>(new Map());
+
   // Move session dialog state
   const [moveDialog, setMoveDialog] = useState<{
     sessionId: string;
@@ -117,8 +125,8 @@ export function ScheduleTab() {
     return d >= from && d <= to && s.isCancelled;
   }).length, [sessions, from, to]);
 
-  useEffect(() => { setSelectionDay(new Set()); }, [from]);
-  useEffect(() => { setSelectionRange(new Set()); }, [from, rangeDays]);
+  useEffect(() => { setSelectionDay(new Set()); setAddCountsDay(new Map()); }, [from]);
+  useEffect(() => { setSelectionRange(new Set()); setAddCountsRange(new Map()); }, [from, rangeDays]);
 
   const gridConfig = useMemo(() => ({ slotMinutes: 15, slotPx: 24, dayStartHour: 0, dayEndHourExclusive: 24 }), []);
   const todayDateStr = isoToday();
@@ -160,8 +168,6 @@ export function ScheduleTab() {
     },
   });
 
-  
-
   // Day grid handlers
   const handleSelectSlotDay = (startsAtIso: string) => {
     setSelectionDay((prev) => { const next = new Set(prev); next.add(startsAtIso); return next; });
@@ -190,6 +196,27 @@ export function ScheduleTab() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  };
+
+  // Increment add count for "+" button
+  const handleIncrementAddDay = (slotKey: string) => {
+    setAddCountsDay((prev) => {
+      const next = new Map(prev);
+      next.set(slotKey, (prev.get(slotKey) ?? 0) + 1);
+      return next;
+    });
+  };
+  const handleIncrementAddRange = (cellKey: string) => {
+    setAddCountsRange((prev) => {
+      const next = new Map(prev);
+      next.set(cellKey, (prev.get(cellKey) ?? 0) + 1);
+      return next;
+    });
+  };
+
+  // Select session (for action bar)
+  const handleSelectSession = (session: AdminEventSessionRow) => {
+    setSelectedSession((prev) => prev?.id === session.id ? null : session);
   };
 
   // Move session handler (from grid drag-and-drop)
@@ -236,53 +263,111 @@ export function ScheduleTab() {
 
   const deleteSession = (sessionId: string) => {
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    setSelectedSession(null);
     toast.success('Сеанс удалён');
   };
 
   const cancelSession = (sessionId: string, reason?: string) => {
     setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, isCancelled: true, canceledAt: new Date().toISOString(), cancelReason: reason } : s));
+    setSelectedSession(null);
     toast.success('Сеанс отменён');
   };
 
+  // Total add counts for batch info
+  const totalAddCountDay = useMemo(() => {
+    let total = 0;
+    addCountsDay.forEach((v) => { total += v; });
+    return total;
+  }, [addCountsDay]);
+
+  const totalAddCountRange = useMemo(() => {
+    let total = 0;
+    addCountsRange.forEach((v) => { total += v; });
+    return total;
+  }, [addCountsRange]);
+
   const handleBatchConfirmDay = (params: { capacityTotal?: number | null; isActive: boolean }) => {
-    if (!selectionDay.size) { setBatchOpenDay(false); return; }
-    const newSessions = Array.from(selectionDay).map((startsAt) => ({
-      id: generateId(),
-      startsAt,
-      capacity: params.capacityTotal ?? null,
-      soldCount: 0,
-      locked: false,
-      isCancelled: false,
-    } as AdminEventSessionRow));
+    if (!selectionDay.size && !totalAddCountDay) { setBatchOpenDay(false); return; }
+    const newSessions: AdminEventSessionRow[] = [];
+    // From selection (empty slots)
+    for (const startsAt of selectionDay) {
+      newSessions.push({
+        id: generateId(),
+        startsAt,
+        capacity: params.capacityTotal ?? null,
+        soldCount: 0,
+        locked: false,
+        isCancelled: false,
+      });
+    }
+    // From add counts (occupied slots)
+    addCountsDay.forEach((count, slotKey) => {
+      const [hh, mm] = slotKey.split(':').map(Number);
+      const startsAt = new Date(`${from}T${pad2(hh)}:${pad2(mm)}:00`).toISOString();
+      for (let i = 0; i < count; i++) {
+        newSessions.push({
+          id: generateId(),
+          startsAt,
+          capacity: params.capacityTotal ?? null,
+          soldCount: 0,
+          locked: false,
+          isCancelled: false,
+        });
+      }
+    });
     setSessions((prev) => [...prev, ...newSessions]);
-    toast.success(`Создано слотов: ${newSessions.length}`);
+    toast.success(`Создано сеансов: ${newSessions.length}`);
     setSelectionDay(new Set());
+    setAddCountsDay(new Map());
     setBatchOpenDay(false);
   };
 
   const handleBatchConfirmRange = (params: { capacityTotal?: number | null; isActive: boolean; minutesByKey: Record<string, number[]> }) => {
     const selArr = Array.from(selectionRange);
-    if (!selArr.length) { setBatchOpenRange(false); return; }
-    const newSessions: AdminEventSessionRow[] = selArr.flatMap((key) => {
+    if (!selArr.length && !totalAddCountRange) { setBatchOpenRange(false); return; }
+    const newSessions: AdminEventSessionRow[] = [];
+    // From selection (empty slots)
+    for (const key of selArr) {
       const [dateKey, hourStr] = key.split('|');
       const hour = Number.parseInt(hourStr, 10);
       const minutes = params.minutesByKey[key]?.length > 0 ? params.minutesByKey[key] : [0];
-      return minutes.map((m) => ({
-        id: generateId(),
-        startsAt: new Date(`${dateKey}T${pad2(hour)}:${pad2(m)}:00`).toISOString(),
-        capacity: params.capacityTotal ?? null,
-        soldCount: 0,
-        locked: false,
-        isCancelled: false,
-      }));
+      for (const m of minutes) {
+        newSessions.push({
+          id: generateId(),
+          startsAt: new Date(`${dateKey}T${pad2(hour)}:${pad2(m)}:00`).toISOString(),
+          capacity: params.capacityTotal ?? null,
+          soldCount: 0,
+          locked: false,
+          isCancelled: false,
+        });
+      }
+    }
+    // From add counts (occupied slots)
+    addCountsRange.forEach((count, cellKey) => {
+      const [dateKey, hourStr] = cellKey.split('|');
+      const hour = Number.parseInt(hourStr, 10);
+      for (let i = 0; i < count; i++) {
+        newSessions.push({
+          id: generateId(),
+          startsAt: new Date(`${dateKey}T${pad2(hour)}:00:00`).toISOString(),
+          capacity: params.capacityTotal ?? null,
+          soldCount: 0,
+          locked: false,
+          isCancelled: false,
+        });
+      }
     });
     setSessions((prev) => [...prev, ...newSessions]);
-    toast.success(`Создано слотов: ${newSessions.length}`);
+    toast.success(`Создано сеансов: ${newSessions.length}`);
     setSelectionRange(new Set());
+    setAddCountsRange(new Map());
     setBatchOpenRange(false);
   };
 
   const selectedDate = from;
+
+  const showBatchBarDay = selectionDay.size > 0 || totalAddCountDay > 0;
+  const showBatchBarRange = selectionRange.size > 0 || totalAddCountRange > 0;
 
   return (
     <TooltipProvider>
@@ -335,6 +420,9 @@ export function ScheduleTab() {
                     setRangePreset(key);
                     setSelectionDay(new Set());
                     setSelectionRange(new Set());
+                    setSelectedSession(null);
+                    setAddCountsDay(new Map());
+                    setAddCountsRange(new Map());
                     if (days > 0) {
                       setFrom(isoToday());
                       setTo(addDaysIso(isoToday(), days - 1));
@@ -373,6 +461,36 @@ export function ScheduleTab() {
         </CardHeader>
 
         <CardContent>
+          {/* Session action bar */}
+          {selectedSession && (
+            <div className="mb-3">
+              <SessionActionBar
+                session={selectedSession}
+                onDeselect={() => setSelectedSession(null)}
+                onAdd={() => {
+                  setCreating(true);
+                  // Could pre-fill time from selected session
+                }}
+                onEdit={() => {
+                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
+                  if (hasSold) {
+                    toast.info('Перенос будет выполнен с автоматическим уведомлением покупателям');
+                  }
+                  setEditing(selectedSession);
+                }}
+                onStop={() => setStopping(selectedSession)}
+                onDelete={() => {
+                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
+                  if (hasSold) {
+                    toast.error('Удаление возможно только после осуществления возвратов через админа');
+                    return;
+                  }
+                  setDeleting(selectedSession);
+                }}
+              />
+            </div>
+          )}
+
           {rows.length === 0 && viewMode === 'table' && (
             <div className="text-sm text-muted-foreground">В выбранном диапазоне сеансов нет.</div>
           )}
@@ -385,16 +503,22 @@ export function ScheduleTab() {
                     date={selectedDate}
                     sessions={rows}
                     selection={selectionDay}
+                    addCounts={addCountsDay}
+                    selectedSessionId={selectedSession?.id ?? null}
                     onToggleSlot={handleToggleSlotDay}
                     onSelectSlot={handleSelectSlotDay}
                     onDeselectSlot={handleDeselectSlotDay}
-                    onEditSession={(s) => setEditing(s)}
+                    onSelectSession={handleSelectSession}
+                    onIncrementAdd={handleIncrementAddDay}
                   />
-                  {selectionDay.size > 0 && (
+                  {showBatchBarDay && (
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <div>Выбрано слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></div>
+                      <div>
+                        {selectionDay.size > 0 && <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>}
+                        {totalAddCountDay > 0 && <span className="ml-2">Добавить в существующие: <span className="font-medium text-foreground">{totalAddCountDay}</span></span>}
+                      </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setSelectionDay(new Set())}>Очистить выбор</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); setAddCountsDay(new Map()); }}>Очистить выбор</Button>
                         <Button variant="default" size="sm" onClick={() => setBatchOpenDay(true)}>Добавить</Button>
                       </div>
                     </div>
@@ -411,20 +535,23 @@ export function ScheduleTab() {
                     hoursEnd={23}
                     sessions={rows}
                     selection={selectionRange}
+                    addCounts={addCountsRange}
+                    selectedSessionId={selectedSession?.id ?? null}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
-                    onOpenSession={(sessionId) => {
-                      const s = rows.find((r) => r.id === sessionId);
-                      if (s) setEditing(s);
-                    }}
+                    onSelectSession={handleSelectSession}
+                    onIncrementAdd={handleIncrementAddRange}
                     onMoveSession={handleMoveSession}
                   />
-                  {selectionRange.size > 0 && (
+                  {showBatchBarRange && (
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <div>Выбрано часов: <span className="font-medium text-foreground">{selectionRange.size}</span></div>
+                      <div>
+                        {selectionRange.size > 0 && <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>}
+                        {totalAddCountRange > 0 && <span className="ml-2">Добавить в существующие: <span className="font-medium text-foreground">{totalAddCountRange}</span></span>}
+                      </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setSelectionRange(new Set())}>Очистить выбор</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); setAddCountsRange(new Map()); }}>Очистить выбор</Button>
                         <Button variant="default" size="sm" onClick={() => setBatchOpenRange(true)}>Добавить</Button>
                       </div>
                     </div>
