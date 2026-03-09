@@ -674,7 +674,8 @@ export function ScheduleTab() {
                 </TableBody>
               </Table>
             </div>
-          )}
+            );
+          })()}
         </CardContent>
       </Card>
 
