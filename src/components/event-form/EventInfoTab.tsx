@@ -25,8 +25,6 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
     name: "extraSections",
   });
 
-  const pendingCategoryRef = useRef<{ value: string; label: string } | null>(null);
-
   const handleAddCategory = () => {
     const trimmed = newCatName.trim();
     if (trimmed.length < 2) {
@@ -38,24 +36,15 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
       toast.error("Такая категория уже существует");
       return;
     }
-    // Store pending category and close dialog first
-    pendingCategoryRef.current = { value, label: trimmed };
+    // Add category immediately, close dialog, then set form value after unmount
+    setCustomCategories((prev) => [...prev, { value, label: trimmed }]);
     setNewCatName("");
     setNewCatDialogOpen(false);
-  };
-
-  const handleDialogOpenChange = (open: boolean) => {
-    setNewCatDialogOpen(open);
-    if (!open && pendingCategoryRef.current) {
-      const cat = pendingCategoryRef.current;
-      pendingCategoryRef.current = null;
-      // Apply after dialog fully unmounts
-      requestAnimationFrame(() => {
-        setCustomCategories((prev) => [...prev, { value: cat.value, label: cat.label }]);
-        form.setValue("category", cat.value);
-        toast.success(`Категория «${cat.label}» добавлена`);
-      });
-    }
+    toast.success(`Категория «${trimmed}» добавлена`);
+    // Defer form.setValue to next tick so Select re-renders with new option first
+    setTimeout(() => {
+      form.setValue("category", value);
+    }, 100);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
