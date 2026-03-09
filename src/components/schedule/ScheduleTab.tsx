@@ -302,8 +302,8 @@ export function ScheduleTab() {
 
   const selectedDate = from;
 
-  const showBatchBarDay = selectionDay.size > 0 || totalAddCountDay > 0;
-  const showBatchBarRange = selectionRange.size > 0 || totalAddCountRange > 0;
+  const showBatchBarDay = selectionDay.size > 0;
+  const showBatchBarRange = selectionRange.size > 0;
 
   return (
     <TooltipProvider>
