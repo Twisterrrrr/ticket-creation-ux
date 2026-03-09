@@ -147,20 +147,16 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
                   const selected = isSelected(hour, minute);
                   const sessionCount = slotSessions?.length ?? 0;
 
-                  // Adaptive width: expand based on session count
-                  const widthClass = sessionCount >= 2
-                    ? 'min-w-[160px]'
-                    : sessionCount === 1
-                      ? 'min-w-[80px]'
-                      : 'min-w-[56px]';
-
                   return (
                     <td
                       key={hour}
-                      className={`border-t border-r border-border px-1 py-1 align-top ${widthClass} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`relative border-t border-r border-border px-1 py-1 align-top min-w-[56px] ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div className={`grid gap-1 ${sessionCount > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        <div
+                          className={`relative z-10 grid gap-1 ${sessionCount > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                          style={sessionCount >= 2 ? { width: `${sessionCount * 56}px` } : undefined}
+                        >
                           {slotSessions.map((s) => {
                             const isActive = selectedSessionId === s.id;
                             const sold = s.soldCount ?? 0;
