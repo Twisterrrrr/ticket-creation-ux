@@ -175,7 +175,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed border-t border-border text-[11px]">
+        <table className="border-t border-border text-[11px]">
           <thead>
             <tr>
               <th className="w-20 border-r border-border bg-muted/50 px-1 py-1 text-left text-[10px] font-medium text-muted-foreground">
@@ -200,11 +200,13 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                   const selected = selection.has(cellKey);
                   const hasSessions = !!agg;
                   const isDropTarget = dragOverCell === cellKey;
+                  const sessionCount = agg?.sessions.length ?? 0;
+                  const widthClass = sessionCount >= 2 ? 'min-w-[120px]' : 'min-w-[44px]';
 
                   return (
                     <td
                       key={h}
-                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${isDropTarget ? 'bg-primary/20' : ''}`}
+                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${widthClass} ${isDropTarget ? 'bg-primary/20' : ''}`}
                       onDragOver={(e) => handleCellDragOver(e, cellKey)}
                       onDragLeave={handleCellDragLeave}
                       onDrop={(e) => handleCellDrop(e, cellKey)}
