@@ -502,7 +502,7 @@ export function ScheduleTab() {
                     hoursEnd={23}
                     sessions={rows}
                     selection={selectionRange}
-                    selectedSessionId={selectedSession?.id ?? null}
+                    selectedSessionId={selectedSessions.length === 1 ? selectedSessions[0].id : null}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
