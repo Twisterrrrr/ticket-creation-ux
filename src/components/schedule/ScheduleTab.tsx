@@ -255,18 +255,6 @@ export function ScheduleTab() {
     toast.success('Сеанс отменён');
   };
 
-  // Total add counts for batch info
-  const totalAddCountDay = useMemo(() => {
-    let total = 0;
-    addCountsDay.forEach((v) => { total += v; });
-    return total;
-  }, [addCountsDay]);
-
-  const totalAddCountRange = useMemo(() => {
-    let total = 0;
-    addCountsRange.forEach((v) => { total += v; });
-    return total;
-  }, [addCountsRange]);
 
   const handleBatchConfirmDay = (params: { capacityTotal?: number | null; isActive: boolean }) => {
     if (!selectionDay.size && !totalAddCountDay) { setBatchOpenDay(false); return; }
