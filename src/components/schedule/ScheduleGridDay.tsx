@@ -153,10 +153,7 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
                       className={`relative border-t border-r border-border px-1 py-1 align-top min-w-[56px] ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div
-                          className={`relative z-10 grid gap-1 ${sessionCount > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
-                          style={sessionCount >= 2 ? { width: `${sessionCount * 56}px` } : undefined}
-                        >
+                      <div className="relative z-10 flex flex-col gap-1">
                           {slotSessions.map((s) => {
                             const isActive = selectedSessionId === s.id;
                             const sold = s.soldCount ?? 0;
