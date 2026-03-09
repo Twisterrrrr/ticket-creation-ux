@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { CalendarClock } from 'lucide-react';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, pad2 } from '@/lib/sessions';
@@ -14,7 +14,10 @@ type Props = {
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridRangeSelection;
   onToggleCell: (key: string) => void;
+  onSelectCell: (key: string) => void;
+  onDeselectCell: (key: string) => void;
   onOpenSession: (sessionId: string) => void;
+  onMoveSession?: (sessionId: string, newDateKey: string, newHour: number) => void;
 };
 
 type HourAgg = {
@@ -22,6 +25,7 @@ type HourAgg = {
   firstSessionId: string;
   firstStartsAt: string;
   times: string[];
+  sessions: AdminEventSessionRow[];
 };
 
 function buildDateKeys(fromDateKey: string, days: number): string[] {
@@ -40,20 +44,26 @@ function buildDateKeys(fromDateKey: string, days: number): string[] {
 
 function buildHours(hoursStart: number, hoursEnd: number): number[] {
   const hours: number[] = [];
-  if (hoursStart === hoursEnd) return [hoursStart];
-  if (hoursStart < 0 || hoursStart > 23 || hoursEnd < 0 || hoursEnd > 23) return [];
-  if (hoursStart <= hoursEnd) {
-    for (let h = hoursStart; h <= hoursEnd; h += 1) hours.push(h);
-  } else {
-    for (let h = hoursStart; h < 24; h += 1) hours.push(h);
-    for (let h = 0; h <= hoursEnd; h += 1) hours.push(h);
-  }
+  for (let h = 0; h <= 23; h += 1) hours.push(h);
   return hours;
 }
 
-export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, onToggleCell, onOpenSession }: Props) {
+function formatDateKeyRu(dateKey: string): string {
+  const d = new Date(`${dateKey}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return dateKey;
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' });
+}
+
+export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, onToggleCell, onSelectCell, onDeselectCell, onOpenSession, onMoveSession }: Props) {
   const dateKeys = useMemo(() => buildDateKeys(fromDateKey, days), [fromDateKey, days]);
   const hours = useMemo(() => buildHours(hoursStart, hoursEnd), [hoursStart, hoursEnd]);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragModeRef = useRef<'select' | 'deselect' | null>(null);
+
+  // Drag-and-drop for sessions
+  const [dragSession, setDragSession] = useState<{ sessionId: string; originKey: string } | null>(null);
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
 
   const rangeLabel = useMemo(() => {
     if (!dateKeys.length) return '';
@@ -73,7 +83,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
       const key = `${dateKey}|${hour}`;
       const existing = map.get(key);
       if (!existing) {
-        map.set(key, { count: 1, firstSessionId: s.id, firstStartsAt: s.startsAt, times: [s.startsAt] });
+        map.set(key, { count: 1, firstSessionId: s.id, firstStartsAt: s.startsAt, times: [s.startsAt], sessions: [s] });
       } else {
         const firstTs = new Date(existing.firstStartsAt).getTime();
         const curTs = d.getTime();
@@ -82,14 +92,96 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
           firstSessionId: curTs < firstTs ? s.id : existing.firstSessionId,
           firstStartsAt: curTs < firstTs ? s.startsAt : existing.firstStartsAt,
           times: [...existing.times, s.startsAt],
+          sessions: [...existing.sessions, s],
         });
       }
     }
     return map;
   }, [sessions]);
 
+  const handlePointerDown = useCallback((e: React.PointerEvent, cellKey: string) => {
+    // Right click = deselect mode
+    if (e.button === 2) {
+      e.preventDefault();
+      dragModeRef.current = 'deselect';
+      setIsDragging(true);
+      onDeselectCell(cellKey);
+      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+      return;
+    }
+    // Left click = select mode
+    if (e.button === 0) {
+      dragModeRef.current = 'select';
+      setIsDragging(true);
+      onSelectCell(cellKey);
+      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    }
+  }, [onSelectCell, onDeselectCell]);
+
+  const handlePointerEnter = useCallback((cellKey: string) => {
+    if (!isDragging || !dragModeRef.current) return;
+    if (dragModeRef.current === 'select') {
+      onSelectCell(cellKey);
+    } else {
+      onDeselectCell(cellKey);
+    }
+  }, [isDragging, onSelectCell, onDeselectCell]);
+
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false);
+    dragModeRef.current = null;
+  }, []);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
+
+  // Session drag handlers
+  const handleSessionDragStart = useCallback((e: React.DragEvent, sessionId: string, originKey: string, hasSold: boolean) => {
+    if (hasSold) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.effectAllowed = 'move';
+    setDragSession({ sessionId, originKey });
+  }, []);
+
+  const handleCellDragOver = useCallback((e: React.DragEvent, cellKey: string) => {
+    if (!dragSession) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverCell(cellKey);
+  }, [dragSession]);
+
+  const handleCellDragLeave = useCallback(() => {
+    setDragOverCell(null);
+  }, []);
+
+  const handleCellDrop = useCallback((e: React.DragEvent, cellKey: string) => {
+    e.preventDefault();
+    setDragOverCell(null);
+    if (!dragSession || !onMoveSession) return;
+    if (cellKey === dragSession.originKey) {
+      setDragSession(null);
+      return;
+    }
+    const [dateKey, hourStr] = cellKey.split('|');
+    const hour = Number.parseInt(hourStr, 10);
+    onMoveSession(dragSession.sessionId, dateKey, hour);
+    setDragSession(null);
+  }, [dragSession, onMoveSession]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragSession(null);
+    setDragOverCell(null);
+  }, []);
+
   return (
-    <div className="mt-4 rounded-lg border border-border">
+    <div
+      className="mt-4 rounded-lg border border-border select-none"
+      onPointerUp={handlePointerUp}
+      onContextMenu={handleContextMenu}
+    >
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <CalendarClock className="h-3.5 w-3.5" />
@@ -125,22 +217,33 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
           <tbody>
             {dateKeys.map((dateKey) => (
               <tr key={dateKey}>
-                <td className="border-r border-t border-border bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground">
-                  {dateKey}
+                <td className="border-r border-t border-border bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground whitespace-nowrap">
+                  {formatDateKeyRu(dateKey)}
                 </td>
                 {hours.map((h) => {
                   const cellKey = `${dateKey}|${h}`;
                   const agg = aggByKey.get(cellKey);
                   const selected = selection.has(cellKey);
                   const hasSessions = !!agg;
+                  const isDropTarget = dragOverCell === cellKey;
+                  const hasSoldSessions = agg?.sessions.some(s => (s.soldCount ?? 0) > 0) ?? false;
                   return (
-                    <td key={h} className="border-t border-r border-border px-0.5 py-0.5 align-top">
+                    <td
+                      key={h}
+                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${isDropTarget ? 'bg-primary/20' : ''}`}
+                      onDragOver={(e) => handleCellDragOver(e, cellKey)}
+                      onDragLeave={handleCellDragLeave}
+                      onDrop={(e) => handleCellDrop(e, cellKey)}
+                    >
                       {hasSessions ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
                               type="button"
-                              className="flex h-8 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-[10px] text-foreground transition-colors hover:bg-muted/80"
+                              draggable={!hasSoldSessions}
+                              onDragStart={(e) => handleSessionDragStart(e, agg.firstSessionId, cellKey, hasSoldSessions)}
+                              onDragEnd={handleDragEnd}
+                              className={`flex h-8 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-[10px] text-foreground transition-colors hover:bg-muted/80 ${!hasSoldSessions ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed'}`}
                               onClick={() => onOpenSession(agg.firstSessionId)}
                             >
                               <span className="truncate">
@@ -151,6 +254,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                           <TooltipContent>
                             <span className="text-[11px]">
                               {agg.times.map((t) => formatTimeRu(t)).sort().join(', ')}
+                              {hasSoldSessions && <span className="block text-destructive">Есть продажи — перенос недоступен</span>}
                             </span>
                           </TooltipContent>
                         </Tooltip>
@@ -162,9 +266,13 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                               ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
                               : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
                           }`}
-                          onClick={() => onToggleCell(cellKey)}
+                          onPointerDown={(e) => handlePointerDown(e, cellKey)}
+                          onPointerEnter={() => handlePointerEnter(cellKey)}
+                          onDragOver={(e) => handleCellDragOver(e, cellKey)}
+                          onDragLeave={handleCellDragLeave}
+                          onDrop={(e) => handleCellDrop(e, cellKey)}
                         >
-                          {selected ? <span className="font-medium">+ час</span> : null}
+                          {selected ? <span className="font-medium">+</span> : null}
                         </button>
                       )}
                     </td>

@@ -18,6 +18,7 @@ import { CreateSessionDialog } from '@/components/schedule/CreateSessionDialog';
 import { EditSessionDialog } from '@/components/schedule/EditSessionDialog';
 import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
+import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
 import { DragLayer } from '@/components/schedule/DragLayer';
 import { useSessionDrag } from '@/components/schedule/useSessionDrag';
 
@@ -31,6 +32,12 @@ function addDaysIso(isoDate: string, days: number) {
   const d = new Date(`${isoDate}T00:00:00`);
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+function diffDays(from: string, to: string): number {
+  const f = new Date(`${from}T00:00:00`).getTime();
+  const t = new Date(`${to}T00:00:00`).getTime();
+  return Math.max(1, Math.round((t - f) / 86400000) + 1);
 }
 
 function lockLabel(reason?: string) {
@@ -76,13 +83,20 @@ export function ScheduleTab() {
   const [includeCancelled, setIncludeCancelled] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [gridDetailMode, setGridDetailMode] = useState<'range' | 'day'>('range');
-  const [rangeDays, setRangeDays] = useState<7 | 14 | 30>(14);
   const [selectionDay, setSelectionDay] = useState<ScheduleGridSelection>(new Set());
   const [selectionRange, setSelectionRange] = useState<ScheduleGridRangeSelection>(new Set());
   const [batchOpenDay, setBatchOpenDay] = useState(false);
   const [batchOpenRange, setBatchOpenRange] = useState(false);
-  const fromDateInputRef = useRef<HTMLInputElement | null>(null);
-  const toDateInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Move session dialog state
+  const [moveDialog, setMoveDialog] = useState<{
+    sessionId: string;
+    sessionStartsAt: string;
+    newDateKey: string;
+    newHour: number;
+  } | null>(null);
+
+  const rangeDays = useMemo(() => diffDays(from, to), [from, to]);
 
   const rows = useMemo(() => {
     return sessions.filter((s) => {
@@ -101,7 +115,7 @@ export function ScheduleTab() {
   useEffect(() => { setSelectionDay(new Set()); }, [from]);
   useEffect(() => { setSelectionRange(new Set()); }, [from, rangeDays]);
 
-  const gridConfig = useMemo(() => ({ slotMinutes: 15, slotPx: 24, dayStartHour: 8, dayEndHourExclusive: 24 }), []);
+  const gridConfig = useMemo(() => ({ slotMinutes: 15, slotPx: 24, dayStartHour: 0, dayEndHourExclusive: 24 }), []);
   const todayDateStr = isoToday();
 
   const intervalsForDay = useMemo(() => {
@@ -143,6 +157,13 @@ export function ScheduleTab() {
 
   const preset = (days: 30 | 90 | 180) => { setFrom(isoToday()); setTo(addDaysIso(isoToday(), days)); };
 
+  // Day grid handlers
+  const handleSelectSlotDay = (startsAtIso: string) => {
+    setSelectionDay((prev) => { const next = new Set(prev); next.add(startsAtIso); return next; });
+  };
+  const handleDeselectSlotDay = (startsAtIso: string) => {
+    setSelectionDay((prev) => { const next = new Set(prev); next.delete(startsAtIso); return next; });
+  };
   const handleToggleSlotDay = (startsAtIso: string) => {
     setSelectionDay((prev) => {
       const next = new Set(prev);
@@ -151,12 +172,43 @@ export function ScheduleTab() {
     });
   };
 
+  // Range grid handlers
+  const handleSelectCellRange = (key: string) => {
+    setSelectionRange((prev) => { const next = new Set(prev); next.add(key); return next; });
+  };
+  const handleDeselectCellRange = (key: string) => {
+    setSelectionRange((prev) => { const next = new Set(prev); next.delete(key); return next; });
+  };
   const handleToggleCellRange = (key: string) => {
     setSelectionRange((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  };
+
+  // Move session handler (from grid drag-and-drop)
+  const handleMoveSession = (sessionId: string, newDateKey: string, newHour: number) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    if ((session.soldCount ?? 0) > 0) {
+      toast.error('Нельзя перенести сеанс с продажами');
+      return;
+    }
+    setMoveDialog({ sessionId, sessionStartsAt: session.startsAt, newDateKey, newHour });
+  };
+
+  const confirmMoveSession = () => {
+    if (!moveDialog) return;
+    const { sessionId, newDateKey, newHour } = moveDialog;
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    const oldDate = new Date(session.startsAt);
+    const minutes = oldDate.getMinutes();
+    const newIso = new Date(`${newDateKey}T${pad2(newHour)}:${pad2(minutes)}:00`).toISOString();
+    setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, startsAt: newIso } : s));
+    toast.success('Сеанс перенесён');
+    setMoveDialog(null);
   };
 
   const addSession = (data: { startsAt: string; capacity?: number | null }) => {
@@ -274,21 +326,6 @@ export function ScheduleTab() {
                 </div>
               )}
 
-              {viewMode === 'grid' && gridDetailMode === 'range' && (
-                <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
-                  {[7, 14, 30].map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      className={`rounded-full px-2 py-0.5 ${rangeDays === d ? 'bg-background text-foreground shadow-sm' : ''}`}
-                      onClick={() => setRangeDays(d as 7 | 14 | 30)}
-                    >
-                      {d} дн.
-                    </button>
-                  ))}
-                </div>
-              )}
-
               <Button variant="outline" size="sm" onClick={() => preset(30)}>30 дней</Button>
               <Button variant="outline" size="sm" onClick={() => preset(90)}>90 дней</Button>
 
@@ -323,7 +360,7 @@ export function ScheduleTab() {
         </CardHeader>
 
         <CardContent>
-          {rows.length === 0 && (
+          {rows.length === 0 && viewMode === 'table' && (
             <div className="text-sm text-muted-foreground">В выбранном диапазоне сеансов нет.</div>
           )}
 
@@ -336,6 +373,8 @@ export function ScheduleTab() {
                     sessions={rows}
                     selection={selectionDay}
                     onToggleSlot={handleToggleSlotDay}
+                    onSelectSlot={handleSelectSlotDay}
+                    onDeselectSlot={handleDeselectSlotDay}
                     onEditSession={(s) => setEditing(s)}
                   />
                   {selectionDay.size > 0 && (
@@ -355,15 +394,18 @@ export function ScheduleTab() {
                   <ScheduleGridRange
                     fromDateKey={from}
                     days={rangeDays}
-                    hoursStart={10}
-                    hoursEnd={1}
+                    hoursStart={0}
+                    hoursEnd={23}
                     sessions={rows}
                     selection={selectionRange}
                     onToggleCell={handleToggleCellRange}
+                    onSelectCell={handleSelectCellRange}
+                    onDeselectCell={handleDeselectCellRange}
                     onOpenSession={(sessionId) => {
                       const s = rows.find((r) => r.id === sessionId);
                       if (s) setEditing(s);
                     }}
+                    onMoveSession={handleMoveSession}
                   />
                   {selectionRange.size > 0 && (
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -534,6 +576,17 @@ export function ScheduleTab() {
         onOpenChange={(open) => { if (!open) setCreating(false); }}
         onCreate={addSession}
       />
+
+      {moveDialog && (
+        <MoveSessionDialog
+          open={!!moveDialog}
+          onOpenChange={(open) => { if (!open) setMoveDialog(null); }}
+          sessionStartsAt={moveDialog.sessionStartsAt}
+          newDateKey={moveDialog.newDateKey}
+          newHour={moveDialog.newHour}
+          onConfirm={confirmMoveSession}
+        />
+      )}
 
       <DragLayer drag={drag} />
     </TooltipProvider>
