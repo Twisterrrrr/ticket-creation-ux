@@ -75,14 +75,14 @@ export function ScheduleTab() {
   }, [sessions]);
 
   const [from, setFrom] = useState<string>(() => isoToday());
-  const [to, setTo] = useState<string>(() => addDaysIso(isoToday(), 30));
+  const [to, setTo] = useState<string>(() => addDaysIso(isoToday(), 14));
+  const [rangePreset, setRangePreset] = useState<'day' | '7' | '14' | '30' | 'custom'>('14');
   const [editing, setEditing] = useState<AdminEventSessionRow | null>(null);
   const [deleting, setDeleting] = useState<AdminEventSessionRow | null>(null);
   const [stopping, setStopping] = useState<AdminEventSessionRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [includeCancelled, setIncludeCancelled] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [gridDetailMode, setGridDetailMode] = useState<'range' | 'day'>('range');
   const [selectionDay, setSelectionDay] = useState<ScheduleGridSelection>(new Set());
   const [selectionRange, setSelectionRange] = useState<ScheduleGridRangeSelection>(new Set());
   const [batchOpenDay, setBatchOpenDay] = useState(false);
@@ -96,7 +96,12 @@ export function ScheduleTab() {
     newHour: number;
   } | null>(null);
 
-  const rangeDays = useMemo(() => diffDays(from, to), [from, to]);
+  const gridDetailMode = rangePreset === 'day' ? 'day' : 'range';
+
+  const rangeDays = useMemo(() => {
+    if (rangePreset === 'day') return 1;
+    return diffDays(from, to);
+  }, [from, to, rangePreset]);
 
   const rows = useMemo(() => {
     return sessions.filter((s) => {
@@ -155,7 +160,7 @@ export function ScheduleTab() {
     },
   });
 
-  const preset = (days: 30 | 90 | 180) => { setFrom(isoToday()); setTo(addDaysIso(isoToday(), days)); };
+  
 
   // Day grid handlers
   const handleSelectSlotDay = (startsAtIso: string) => {
@@ -307,28 +312,6 @@ export function ScheduleTab() {
                 </button>
               </div>
 
-              {viewMode === 'grid' && (
-                <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
-                  <button
-                    type="button"
-                    className={`rounded-full px-2 py-0.5 ${gridDetailMode === 'range' ? 'bg-background text-foreground shadow-sm' : ''}`}
-                    onClick={() => { setGridDetailMode('range'); setSelectionDay(new Set()); }}
-                  >
-                    Диапазон
-                  </button>
-                  <button
-                    type="button"
-                    className={`rounded-full px-2 py-0.5 ${gridDetailMode === 'day' ? 'bg-background text-foreground shadow-sm' : ''}`}
-                    onClick={() => { setGridDetailMode('day'); setSelectionRange(new Set()); }}
-                  >
-                    День
-                  </button>
-                </div>
-              )}
-
-              <Button variant="outline" size="sm" onClick={() => preset(30)}>30 дней</Button>
-              <Button variant="outline" size="sm" onClick={() => preset(90)}>90 дней</Button>
-
               <Button variant="default" size="sm" className="gap-2" onClick={() => setCreating(true)}>
                 <Plus className="h-4 w-4" /> Добавить сеанс
               </Button>
@@ -336,16 +319,46 @@ export function ScheduleTab() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-3 text-sm">
-              <span className="text-muted-foreground">Период:</span>
-              <div className="flex items-center gap-1">
+            <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
+              {([
+                { key: 'day' as const, label: 'День', days: 1 },
+                { key: '7' as const, label: '7 дней', days: 7 },
+                { key: '14' as const, label: '14 дней', days: 14 },
+                { key: '30' as const, label: '30 дней', days: 30 },
+                { key: 'custom' as const, label: 'Произвольно', days: 0 },
+              ]).map(({ key, label, days }) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`rounded-full px-2 py-0.5 ${rangePreset === key ? 'bg-background text-foreground shadow-sm' : ''}`}
+                  onClick={() => {
+                    setRangePreset(key);
+                    setSelectionDay(new Set());
+                    setSelectionRange(new Set());
+                    if (days > 0) {
+                      setFrom(isoToday());
+                      setTo(addDaysIso(isoToday(), days - 1));
+                    }
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {rangePreset === 'custom' && (
+              <div className="flex items-center gap-2 text-sm">
                 <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px] text-xs" />
-              </div>
-              <span className="text-muted-foreground">—</span>
-              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">—</span>
                 <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px] text-xs" />
               </div>
-            </div>
+            )}
+
+            {rangePreset === 'day' && (
+              <div className="flex items-center gap-2 text-sm">
+                <Input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setTo(e.target.value); }} className="w-[150px] text-xs" />
+              </div>
+            )}
 
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
