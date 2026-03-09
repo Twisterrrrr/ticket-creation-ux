@@ -334,7 +334,7 @@ function Step2({ form }: { form: UseFormReturn<EventFormData> }) {
               )} />
               <FormField control={form.control} name={`tickets.${index}.price`} render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs">Цена (₸) *</FormLabel>
+                  <FormLabel className="text-xs">Цена (₽) *</FormLabel>
                   <FormControl><Input type="number" min={0} placeholder="5000" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
