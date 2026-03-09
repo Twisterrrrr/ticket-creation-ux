@@ -1,4 +1,4 @@
-import { Pencil, Plus, Square, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, ShoppingCart, Square, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 
@@ -9,9 +9,10 @@ type Props = {
   onEdit: () => void;
   onStop: () => void;
   onDelete: () => void;
+  onViewSales?: () => void;
 };
 
-export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete }: Props) {
+export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales }: Props) {
   const count = sessions.length;
   const hasSold = sessions.some((s) => (s.soldCount ?? 0) > 0);
   const hasLocked = sessions.some((s) => s.locked);
@@ -65,6 +66,17 @@ export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, 
         <Trash2 className="h-3.5 w-3.5" />
         Удалить
       </Button>
+      {hasSold && onViewSales && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5"
+          onClick={onViewSales}
+        >
+          <ShoppingCart className="h-3.5 w-3.5" />
+          Продажи{count === 1 ? '' : ` (${sessions.filter(s => (s.soldCount ?? 0) > 0).length})`}
+        </Button>
+      )}
       {hasSold && (
         <span className="ml-2 text-[11px] text-destructive">
           Есть продажи — перенос с уведомлением, удаление после возвратов

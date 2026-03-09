@@ -21,6 +21,7 @@ import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
 import { SessionActionBar } from '@/components/schedule/SessionActionBar';
+import { SessionSalesDialog } from '@/components/schedule/SessionSalesDialog';
 import { DragLayer } from '@/components/schedule/DragLayer';
 import { useSessionDrag } from '@/components/schedule/useSessionDrag';
 
@@ -93,6 +94,7 @@ export function ScheduleTab() {
   // Selected sessions for action bar (multi-select)
   const [selectedSessions, setSelectedSessions] = useState<AdminEventSessionRow[]>([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [salesSession, setSalesSession] = useState<AdminEventSessionRow | null>(null);
 
 
   // Move session dialog state
@@ -457,6 +459,11 @@ export function ScheduleTab() {
                     for (const s of selectedSessions) deleteSession(s.id);
                   }
                 }}
+                onViewSales={() => {
+                  // Show sales for first session with sales (or single selected)
+                  const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
+                  if (withSales) setSalesSession(withSales);
+                }}
               />
             </div>
           )}
@@ -698,6 +705,12 @@ export function ScheduleTab() {
           onConfirm={confirmMoveSession}
         />
       )}
+
+      <SessionSalesDialog
+        open={!!salesSession}
+        onOpenChange={(open) => { if (!open) setSalesSession(null); }}
+        session={salesSession}
+      />
 
       <DragLayer drag={drag} />
     </TooltipProvider>
