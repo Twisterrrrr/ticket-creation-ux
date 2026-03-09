@@ -63,18 +63,16 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
       dragModeRef.current = 'deselect';
       setIsDragging(true);
       onDeselectSlot(iso);
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
       return;
     }
     if (e.button === 0) {
       dragModeRef.current = 'select';
       setIsDragging(true);
       onSelectSlot(iso);
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     }
   }, [sessionsByKey, onSelectSlot, onDeselectSlot]);
 
-  const handlePointerEnter = useCallback((hour: number, minute: number) => {
+  const handlePointerOver = useCallback((hour: number, minute: number) => {
     if (!isDragging || !dragModeRef.current) return;
     const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     if (sessionsByKey.has(key)) return;
@@ -177,7 +175,7 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
                         <button
                           type="button"
                           onPointerDown={(e) => handlePointerDown(e, hour, minute)}
-                          onPointerEnter={() => handlePointerEnter(hour, minute)}
+                          onPointerOver={() => handlePointerOver(hour, minute)}
                           className={`flex h-7 w-full items-center justify-center rounded border text-[10px] transition-colors ${
                             selected
                               ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
