@@ -66,6 +66,17 @@ export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, 
         <Trash2 className="h-3.5 w-3.5" />
         Удалить
       </Button>
+      {hasSold && onViewSales && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5"
+          onClick={onViewSales}
+        >
+          <ShoppingCart className="h-3.5 w-3.5" />
+          Продажи{count === 1 ? '' : ` (${sessions.filter(s => (s.soldCount ?? 0) > 0).length})`}
+        </Button>
+      )}
       {hasSold && (
         <span className="ml-2 text-[11px] text-destructive">
           Есть продажи — перенос с уведомлением, удаление после возвратов
