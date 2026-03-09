@@ -706,6 +706,12 @@ export function ScheduleTab() {
         />
       )}
 
+      <SessionSalesDialog
+        open={!!salesSession}
+        onOpenChange={(open) => { if (!open) setSalesSession(null); }}
+        session={salesSession}
+      />
+
       <DragLayer drag={drag} />
     </TooltipProvider>
   );
