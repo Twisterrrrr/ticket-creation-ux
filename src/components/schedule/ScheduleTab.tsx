@@ -600,14 +600,7 @@ export function ScheduleTab() {
           open={batchOpenDay}
           onOpenChange={(open) => { setBatchOpenDay(open); }}
           dateLabel={formatDateRu(`${selectedDate}T00:00:00Z`)}
-          slots={[
-            ...Array.from(selectionDay).map((startsAt) => ({ startsAt })),
-            ...Array.from(addCountsDay.entries()).flatMap(([slotKey, count]) => {
-              const [hh, mm] = slotKey.split(':').map(Number);
-              const startsAt = new Date(`${from}T${pad2(hh)}:${pad2(mm)}:00`).toISOString();
-              return Array.from({ length: count }, () => ({ startsAt }));
-            }),
-          ]}
+          slots={Array.from(selectionDay).map((startsAt) => ({ startsAt }))}
           onConfirm={handleBatchConfirmDay}
         />
       )}
