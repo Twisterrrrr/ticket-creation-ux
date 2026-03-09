@@ -167,9 +167,9 @@ const EventCreateForm = () => {
             </div>
           </form>
         </Form>
-      </div>
     </div>
   );
+};
 };
 
 // Step 1: Info sections
