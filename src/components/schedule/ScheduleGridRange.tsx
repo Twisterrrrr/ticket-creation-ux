@@ -261,7 +261,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       ) : (
                         <button
                           type="button"
-                          className={`flex h-8 w-full items-center justify-center rounded border text-[10px] transition-colors ${
+                          className={`flex h-full min-h-[32px] w-full items-center justify-center rounded border text-[10px] transition-colors ${
                             selected
                               ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
                               : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
