@@ -437,22 +437,19 @@ export function ScheduleTab() {
                     date={selectedDate}
                     sessions={rows}
                     selection={selectionDay}
-                    addCounts={addCountsDay}
                     selectedSessionId={selectedSession?.id ?? null}
                     onToggleSlot={handleToggleSlotDay}
                     onSelectSlot={handleSelectSlotDay}
                     onDeselectSlot={handleDeselectSlotDay}
                     onSelectSession={handleSelectSession}
-                    onIncrementAdd={handleIncrementAddDay}
                   />
                   {showBatchBarDay && (
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                       <div>
-                        {selectionDay.size > 0 && <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>}
-                        {totalAddCountDay > 0 && <span className="ml-2">Добавить в существующие: <span className="font-medium text-foreground">{totalAddCountDay}</span></span>}
+                        <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); setAddCountsDay(new Map()); }}>Очистить выбор</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); }}>Очистить выбор</Button>
                         <Button variant="default" size="sm" onClick={() => setBatchOpenDay(true)}>Добавить</Button>
                       </div>
                     </div>
