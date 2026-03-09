@@ -152,11 +152,19 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                   return (
                     <td
                       key={hour}
-                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hasSession && slotSessions!.length > 1 ? 'min-w-[120px]' : 'min-w-[56px]'} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`border-t border-r border-border px-1 py-1 align-top ${
+                        hasSession
+                          ? slotSessions!.length > 2
+                            ? 'min-w-[180px]'
+                            : slotSessions!.length > 1
+                              ? 'min-w-[140px]'
+                              : 'min-w-[80px]'
+                          : 'min-w-[56px]'
+                      } ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div className="relative">
-                          <div className="grid grid-cols-2 gap-0.5">
+                        <div className="relative pr-4">
+                          <div className={`grid gap-1 ${slotSessions!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             {slotSessions.map((s) => {
                               const isActive = selectedSessionId === s.id;
                               const sold = s.soldCount ?? 0;
