@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Plus } from 'lucide-react';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, pad2 } from '@/lib/sessions';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -232,28 +232,43 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       onDrop={(e) => handleCellDrop(e, cellKey)}
                     >
                       {hasSessions ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              draggable={!hasSoldSessions}
-                              onDragStart={(e) => handleSessionDragStart(e, agg.firstSessionId, cellKey, hasSoldSessions)}
-                              onDragEnd={handleDragEnd}
-                              className={`flex h-8 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-[10px] text-foreground transition-colors hover:bg-muted/80 ${!hasSoldSessions ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed'}`}
-                              onClick={() => onOpenSession(agg.firstSessionId)}
-                            >
-                              <span className="truncate">
-                                {agg.count === 1 ? '1 сеанс' : `${agg.count} сеансов`}
+                        <div className="relative">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                draggable={!hasSoldSessions}
+                                onDragStart={(e) => handleSessionDragStart(e, agg.firstSessionId, cellKey, hasSoldSessions)}
+                                onDragEnd={handleDragEnd}
+                                className={`flex h-8 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-[10px] text-foreground transition-colors hover:bg-muted/80 ${!hasSoldSessions ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed'}`}
+                                onClick={() => onOpenSession(agg.firstSessionId)}
+                              >
+                                <span className="truncate">
+                                  {agg.count === 1 ? '1 сеанс' : `${agg.count} сеансов`}
+                                </span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <span className="text-[11px]">
+                                {agg.times.map((t) => formatTimeRu(t)).sort().join(', ')}
+                                {hasSoldSessions && <span className="block text-destructive">Есть продажи — перенос недоступен</span>}
                               </span>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <span className="text-[11px]">
-                              {agg.times.map((t) => formatTimeRu(t)).sort().join(', ')}
-                              {hasSoldSessions && <span className="block text-destructive">Есть продажи — перенос недоступен</span>}
-                            </span>
-                          </TooltipContent>
-                        </Tooltip>
+                            </TooltipContent>
+                          </Tooltip>
+                          {/* Add more sessions to this slot */}
+                          <button
+                            type="button"
+                            onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e, cellKey); }}
+                            className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] transition-colors ${
+                              selected
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
+                            }`}
+                            title="Добавить ещё сеанс"
+                          >
+                            <Plus className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
                       ) : (
                         <button
                           type="button"

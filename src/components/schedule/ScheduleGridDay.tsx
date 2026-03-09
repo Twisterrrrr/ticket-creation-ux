@@ -30,13 +30,15 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
   const [isDragging, setIsDragging] = useState(false);
   const dragModeRef = useRef<'select' | 'deselect' | null>(null);
 
+  // Support multiple sessions per slot
   const sessionsByKey = useMemo(() => {
-    const map = new Map<string, AdminEventSessionRow>();
+    const map = new Map<string, AdminEventSessionRow[]>();
     for (const s of sessions) {
       if (isoToDateInput(s.startsAt) !== date) continue;
       const d = new Date(s.startsAt);
       const key = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-      if (!map.has(key)) map.set(key, s);
+      const existing = map.get(key) || [];
+      map.set(key, [...existing, s]);
     }
     return map;
   }, [sessions, date]);
@@ -46,16 +48,13 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
 
   const handleCellClick = (hour: number, minute: number) => {
     const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    const session = sessionsByKey.get(key);
-    if (session) {
-      onEditSession(session);
+    const slotSessions = sessionsByKey.get(key);
+    if (slotSessions?.length) {
+      onEditSession(slotSessions[0]);
     }
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent, hour: number, minute: number) => {
-    const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    if (sessionsByKey.has(key)) return;
-
     const iso = makeIso(hour, minute);
 
     if (e.button === 2) {
@@ -70,19 +69,17 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
       setIsDragging(true);
       onSelectSlot(iso);
     }
-  }, [sessionsByKey, onSelectSlot, onDeselectSlot]);
+  }, [onSelectSlot, onDeselectSlot]);
 
   const handlePointerOver = useCallback((hour: number, minute: number) => {
     if (!isDragging || !dragModeRef.current) return;
-    const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    if (sessionsByKey.has(key)) return;
     const iso = makeIso(hour, minute);
     if (dragModeRef.current === 'select') {
       onSelectSlot(iso);
     } else {
       onDeselectSlot(iso);
     }
-  }, [isDragging, sessionsByKey, onSelectSlot, onDeselectSlot]);
+  }, [isDragging, onSelectSlot, onDeselectSlot]);
 
   const handlePointerUp = useCallback(() => {
     setIsDragging(false);
@@ -154,23 +151,42 @@ export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onSel
                 </td>
                 {GRID_HOURS.map((hour) => {
                   const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                  const session = sessionsByKey.get(key);
+                  const slotSessions = sessionsByKey.get(key);
+                  const hasSession = !!slotSessions?.length;
                   const selected = isSelected(hour, minute);
+                  const sessionCount = slotSessions?.length ?? 0;
 
                   return (
                     <td
                       key={hour}
                       className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
-                      {session ? (
-                        <button
-                          type="button"
-                          onClick={() => handleCellClick(hour, minute)}
-                          className="flex h-7 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80 text-[10px] transition-colors"
-                          title={`${formatTimeRu(session.startsAt)} · ${session.capacity ?? '—'} мест · продано ${session.soldCount}`}
-                        >
-                          <span className="truncate">{formatTimeRu(session.startsAt)}</span>
-                        </button>
+                      {hasSession ? (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => handleCellClick(hour, minute)}
+                            className="flex h-7 w-full items-center justify-center rounded border border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80 text-[10px] transition-colors"
+                            title={`${slotSessions.map(s => formatTimeRu(s.startsAt)).join(', ')} · ${sessionCount} сеанс(ов)`}
+                          >
+                            <span className="truncate">
+                              {sessionCount > 1 ? `${sessionCount}` : formatTimeRu(slotSessions[0].startsAt)}
+                            </span>
+                          </button>
+                          {/* Add more sessions to this slot */}
+                          <button
+                            type="button"
+                            onPointerDown={(e) => { e.stopPropagation(); handlePointerDown(e, hour, minute); }}
+                            className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] transition-colors ${
+                              selected
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
+                            }`}
+                            title="Добавить ещё сеанс в этот слот"
+                          >
+                            <Plus className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
                       ) : (
                         <button
                           type="button"
