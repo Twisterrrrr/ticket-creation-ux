@@ -10,7 +10,7 @@ interface EventPreviewCardProps {
 const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
   const categoryLabel = categories.find((c) => c.value === data.category)?.label || data.category;
   const minPrice = data.tickets.length > 0 ? Math.min(...data.tickets.map((t) => t.price)) : 0;
-  const totalQuantity = data.tickets.reduce((sum, t) => sum + (t.quota || 0)| 0)| 0), 0);
+  const totalQuantity = data.tickets.reduce((sum, t) => sum + (t.quota || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -96,7 +96,7 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
               <div key={i} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground">{ticket.name || `Категория ${i + 1}`}</p>
-                  <p className="text-xs text-muted-foreground">{tota ? `${ticket.quota} шт.` : "Без ограничения"}ticket.quota} шт.` : "Без ограничения"}�т.</p>
+                  <p className="text-xs text-muted-foreground">{ticket.quota ? `${ticket.quota} шт.` : "Без ограничения"}</p>
                 </div>
                 <p className="font-bold text-foreground">
                   {ticket.price ? `${ticket.price.toLocaleString()} ₸` : "Бесплатно"}
@@ -122,9 +122,9 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
           <span>Категорий билетов:</span>
           <span className="text-foreground font-medium">{data.tickets.length}</span>
           <span>Всего билетов:</span>
-          <span className="text-foreground font-medium">{totalQuantity}</span>
-          <span>Комиссия:</span>
-          <span className="text-foreground font-medium">{data.commission || 0}%</span>
+          <span className="text-foreground font-medium">{totalQuantity || "—"}</span>
+          <span>Общая квота:</span>
+          <span className="text-foreground font-medium">{data.totalQuota || "—"}</span>
           <span>Slug:</span>
           <span className="text-foreground font-medium font-mono text-xs">{data.slug || "—"}</span>
         </div>
