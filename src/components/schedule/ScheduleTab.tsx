@@ -195,21 +195,6 @@ export function ScheduleTab() {
     });
   };
 
-  // Increment add count for "+" button
-  const handleIncrementAddDay = (slotKey: string) => {
-    setAddCountsDay((prev) => {
-      const next = new Map(prev);
-      next.set(slotKey, (prev.get(slotKey) ?? 0) + 1);
-      return next;
-    });
-  };
-  const handleIncrementAddRange = (cellKey: string) => {
-    setAddCountsRange((prev) => {
-      const next = new Map(prev);
-      next.set(cellKey, (prev.get(cellKey) ?? 0) + 1);
-      return next;
-    });
-  };
 
   // Select session (for action bar)
   const handleSelectSession = (session: AdminEventSessionRow) => {
