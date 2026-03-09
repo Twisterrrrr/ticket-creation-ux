@@ -197,15 +197,15 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-t border-border text-[11px]">
+        <table className="w-full table-fixed border-t border-border text-[11px]">
           <thead>
             <tr>
-              <th className="w-24 border-r border-border bg-muted/50 px-2 py-1 text-left text-[10px] font-medium text-muted-foreground">
+              <th className="w-20 border-r border-border bg-muted/50 px-1 py-1 text-left text-[10px] font-medium text-muted-foreground">
                 Дата
               </th>
               {hours.map((h) => (
-                <th key={h} className="min-w-[56px] border-r border-border bg-muted/50 px-2 py-1 text-center text-[10px] font-medium text-muted-foreground">
-                  {pad2(h)}:00
+                <th key={h} className="border-r border-border bg-muted/50 px-0 py-1 text-center text-[10px] font-medium text-muted-foreground">
+                  {pad2(h)}
                 </th>
               ))}
             </tr>
