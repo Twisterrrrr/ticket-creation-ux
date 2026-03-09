@@ -163,8 +163,8 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                       } ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div className="relative pr-4">
-                          <div className={`grid gap-1 ${slotSessions!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        <div className="flex items-start gap-1">
+                          <div className={`flex-1 grid gap-1 ${slotSessions!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             {slotSessions.map((s) => {
                               const isActive = selectedSessionId === s.id;
                               const sold = s.soldCount ?? 0;
@@ -190,11 +190,10 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                               );
                             })}
                           </div>
-                          {/* "+" button increments add count */}
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onIncrementAdd(key); }}
-                            className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] transition-colors ${
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] transition-colors ${
                               addCount > 0
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
