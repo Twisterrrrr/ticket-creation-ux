@@ -6,15 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormSection from "./FormSection";
 import FieldWithHint from "./FieldWithHint";
-import { Type, FileText, MapPin, Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Type, FileText, MapPin, Plus, Trash2, Upload, ImageIcon, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
   const [customCategories, setCustomCategories] = useState<{ value: string; label: string }[]>([]);
-  const [newCatDialogOpen, setNewCatDialogOpen] = useState(false);
+  const [showNewCatInput, setShowNewCatInput] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +38,7 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
     setCustomCategories((prev) => [...prev, { value, label: trimmed }]);
     form.setValue("category", value);
     setNewCatName("");
-    setNewCatDialogOpen(false);
+    setShowNewCatInput(false);
     toast.success(`Категория «${trimmed}» добавлена`);
   };
 
@@ -84,21 +83,40 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
           <FormField control={form.control} name="category" render={({ field }) => (
             <FormItem>
               <FormLabel>Категория *</FormLabel>
-              <div className="flex gap-2">
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите..." /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {allCategories.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button type="button" variant="outline" size="icon" className="shrink-0" onClick={() => setNewCatDialogOpen(true)}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              {!showNewCatInput ? (
+                <div className="flex gap-2">
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите..." /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {allCategories.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" variant="outline" size="icon" className="shrink-0" onClick={() => setShowNewCatInput(true)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Новая категория..."
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCategory())}
+                    autoFocus
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="default" size="icon" className="shrink-0" onClick={handleAddCategory}>
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => { setShowNewCatInput(false); setNewCatName(""); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )} />
@@ -230,24 +248,6 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
           )} />
         </div>
       </FormSection>
-
-      {/* New Category Dialog */}
-      <Dialog open={newCatDialogOpen} onOpenChange={setNewCatDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Новая категория</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Название категории</label>
-              <Input placeholder="Например: Мастер-класс" value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddCategory()} />
-            </div>
-            <Button className="w-full" onClick={handleAddCategory}>Добавить</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
