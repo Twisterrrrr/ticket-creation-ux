@@ -263,7 +263,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                               : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
                           }`}
                           onPointerDown={(e) => handlePointerDown(e, cellKey)}
-                          onPointerEnter={() => handlePointerEnter(cellKey)}
+                          onPointerOver={() => handlePointerOver(cellKey)}
                           onDragOver={(e) => handleCellDragOver(e, cellKey)}
                           onDragLeave={handleCellDragLeave}
                           onDrop={(e) => handleCellDrop(e, cellKey)}
