@@ -14,7 +14,7 @@ import FormSection from "./FormSection";
 import FieldWithHint from "./FieldWithHint";
 import EventPreviewCard from "./EventPreviewCard";
 import { toast } from "sonner";
-import { Type, FileText, MapPin, Ticket, ArrowLeft, ArrowRight, Check, Save } from "lucide-react";
+import { Type, FileText, MapPin, Ticket, ArrowLeft, ArrowRight, Check, Save, Plus, Trash2 } from "lucide-react";
 
 const STEPS = ["Информация", "Билеты", "Превью"];
 const DRAFT_KEY = "event-draft";
