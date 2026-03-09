@@ -156,7 +156,7 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                     >
                       {hasSession ? (
                         <div className="relative">
-                          <div className="flex flex-col gap-0.5">
+                          <div className="grid grid-cols-2 gap-0.5">
                             {slotSessions.map((s) => {
                               const isActive = selectedSessionId === s.id;
                               const sold = s.soldCount ?? 0;
