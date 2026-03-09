@@ -152,7 +152,7 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                   return (
                     <td
                       key={hour}
-                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hasSession && slotSessions!.length > 1 ? 'min-w-[120px]' : 'min-w-[56px]'} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
                         <div className="relative">
