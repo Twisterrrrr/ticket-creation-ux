@@ -92,9 +92,6 @@ export function ScheduleTab() {
   // Selected session for action bar
   const [selectedSession, setSelectedSession] = useState<AdminEventSessionRow | null>(null);
 
-  // Add counts for "+" button (key -> count of sessions to add)
-  const [addCountsDay, setAddCountsDay] = useState<Map<string, number>>(new Map());
-  const [addCountsRange, setAddCountsRange] = useState<Map<string, number>>(new Map());
 
   // Move session dialog state
   const [moveDialog, setMoveDialog] = useState<{
