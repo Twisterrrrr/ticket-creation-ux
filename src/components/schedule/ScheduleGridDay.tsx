@@ -20,7 +20,7 @@ const GRID_HOURS: number[] = [];
 for (let h = 0; h <= 23; h += 1) GRID_HOURS.push(h);
 const STEP_MINUTES = 15;
 
-export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession }: Props) {
+export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession }: Props) {
   const minutesRows = useMemo(() => {
     const rows: number[] = [];
     for (let m = 0; m < 60; m += STEP_MINUTES) rows.push(m);
