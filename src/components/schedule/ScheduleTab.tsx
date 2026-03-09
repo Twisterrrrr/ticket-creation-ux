@@ -459,6 +459,11 @@ export function ScheduleTab() {
                     for (const s of selectedSessions) deleteSession(s.id);
                   }
                 }}
+                onViewSales={() => {
+                  // Show sales for first session with sales (or single selected)
+                  const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
+                  if (withSales) setSalesSession(withSales);
+                }}
               />
             </div>
           )}
