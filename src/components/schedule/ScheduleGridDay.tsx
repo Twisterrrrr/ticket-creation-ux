@@ -192,7 +192,7 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
                           type="button"
                           onPointerDown={(e) => handlePointerDown(e, hour, minute)}
                           onPointerOver={() => handlePointerOver(hour, minute)}
-                          className={`flex h-7 w-full items-center justify-center rounded border text-[10px] transition-colors ${
+                          className={`flex h-full min-h-[28px] w-full items-center justify-center rounded border text-[10px] transition-colors ${
                             selected
                               ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
                               : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
