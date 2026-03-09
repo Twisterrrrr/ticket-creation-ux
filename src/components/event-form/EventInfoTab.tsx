@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { EventFormData, categories, ageRestrictions } from "@/lib/eventSchema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
