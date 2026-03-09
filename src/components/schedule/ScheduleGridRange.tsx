@@ -13,7 +13,7 @@ type Props = {
   hoursEnd: number;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridRangeSelection;
-  selectedSessionId: string | null;
+  selectedSessionIds: Set<string>;
   onToggleCell: (key: string) => void;
   onSelectCell: (key: string) => void;
   onDeselectCell: (key: string) => void;
