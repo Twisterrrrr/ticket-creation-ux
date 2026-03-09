@@ -75,14 +75,14 @@ export function ScheduleTab() {
   }, [sessions]);
 
   const [from, setFrom] = useState<string>(() => isoToday());
-  const [to, setTo] = useState<string>(() => addDaysIso(isoToday(), 30));
+  const [to, setTo] = useState<string>(() => addDaysIso(isoToday(), 14));
+  const [rangePreset, setRangePreset] = useState<'day' | '7' | '14' | '30' | 'custom'>('14');
   const [editing, setEditing] = useState<AdminEventSessionRow | null>(null);
   const [deleting, setDeleting] = useState<AdminEventSessionRow | null>(null);
   const [stopping, setStopping] = useState<AdminEventSessionRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [includeCancelled, setIncludeCancelled] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [gridDetailMode, setGridDetailMode] = useState<'range' | 'day'>('range');
   const [selectionDay, setSelectionDay] = useState<ScheduleGridSelection>(new Set());
   const [selectionRange, setSelectionRange] = useState<ScheduleGridRangeSelection>(new Set());
   const [batchOpenDay, setBatchOpenDay] = useState(false);
