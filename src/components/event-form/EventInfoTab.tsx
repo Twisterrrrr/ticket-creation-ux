@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { EventFormData, categories, ageRestrictions } from "@/lib/eventSchema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -6,15 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormSection from "./FormSection";
 import FieldWithHint from "./FieldWithHint";
-import { Type, FileText, MapPin, Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Type, FileText, MapPin, Plus, Trash2, Upload, ImageIcon, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
   const [customCategories, setCustomCategories] = useState<{ value: string; label: string }[]>([]);
-  const [newCatDialogOpen, setNewCatDialogOpen] = useState(false);
+  const [showNewCatInput, setShowNewCatInput] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,8 +23,6 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
     control: form.control,
     name: "extraSections",
   });
-
-  const pendingCategoryRef = useRef<{ value: string; label: string } | null>(null);
 
   const handleAddCategory = () => {
     const trimmed = newCatName.trim();
@@ -38,25 +35,12 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
       toast.error("Такая категория уже существует");
       return;
     }
-    // Store pending and close dialog — defer ALL state updates to avoid portal conflict
-    pendingCategoryRef.current = { value, label: trimmed };
+    setCustomCategories((prev) => [...prev, { value, label: trimmed }]);
+    form.setValue("category", value);
     setNewCatName("");
-    setNewCatDialogOpen(false);
+    setShowNewCatInput(false);
+    toast.success(`Категория «${trimmed}» добавлена`);
   };
-
-  // Apply pending category after dialog animation completes (200ms duration)
-  useEffect(() => {
-    if (!newCatDialogOpen && pendingCategoryRef.current) {
-      const cat = pendingCategoryRef.current;
-      pendingCategoryRef.current = null;
-      const timer = setTimeout(() => {
-        setCustomCategories((prev) => [...prev, { value: cat.value, label: cat.label }]);
-        form.setValue("category", cat.value);
-        toast.success(`Категория «${cat.label}» добавлена`);
-      }, 250);
-      return () => clearTimeout(timer);
-    }
-  }, [newCatDialogOpen, form]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
