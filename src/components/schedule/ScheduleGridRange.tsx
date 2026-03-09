@@ -238,9 +238,9 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                                             : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
                                       } ${!hasSold ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                     >
-                                      <span className="truncate">
-                                        {formatTimeRu(s.startsAt)}
-                                        <span className="ml-0.5 opacity-70">{sold}/{cap}</span>
+                                      <span className="flex flex-col items-center leading-tight">
+                                        <span>{formatTimeRu(s.startsAt)}</span>
+                                        <span className="text-[8px] opacity-70">{sold} / {cap}</span>
                                       </span>
                                     </button>
                                   );
