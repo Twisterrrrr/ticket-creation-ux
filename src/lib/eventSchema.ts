@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+const ticketCategorySchema = z.object({
+  name: z.string().trim().min(2, "Минимум 2 символа").max(80, "Максимум 80 символов"),
+  price: z.coerce.number().min(0, "Цена не может быть отрицательной"),
+  quantity: z.coerce.number().int().min(1, "Минимум 1 билет"),
+});
+
+export type TicketCategory = z.infer<typeof ticketCategorySchema>;
+
 export const eventSchema = z.object({
   // Basic Info
   title: z.string().trim().min(3, "Минимум 3 символа").max(120, "Максимум 120 символов"),
@@ -20,14 +28,18 @@ export const eventSchema = z.object({
   city: z.string().trim().min(2, "Минимум 2 символа").max(60, "Максимум 60 символов"),
   ageRestriction: z.string().optional().or(z.literal("")),
 
-  // Pricing
-  ticketName: z.string().trim().min(2, "Минимум 2 символа").max(80, "Максимум 80 символов"),
-  price: z.coerce.number().min(0, "Цена не может быть отрицательной"),
-  quantity: z.coerce.number().int().min(1, "Минимум 1 билет"),
+  // Tickets
+  tickets: z.array(ticketCategorySchema).min(1, "Добавьте хотя бы одну категорию билетов"),
   commission: z.coerce.number().min(0).max(100, "Максимум 100%").optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
+
+export const defaultTicket: TicketCategory = {
+  name: "",
+  price: 0,
+  quantity: 100,
+};
 
 export const defaultEventValues: EventFormData = {
   title: "",
@@ -42,9 +54,7 @@ export const defaultEventValues: EventFormData = {
   venue: "",
   city: "",
   ageRestriction: "",
-  ticketName: "",
-  price: 0,
-  quantity: 100,
+  tickets: [{ ...defaultTicket }],
   commission: 10,
 };
 
