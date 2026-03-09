@@ -152,11 +152,19 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                   return (
                     <td
                       key={hour}
-                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hasSession && slotSessions!.length > 1 ? 'min-w-[120px]' : 'min-w-[56px]'} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`border-t border-r border-border px-1 py-1 align-top ${
+                        hasSession
+                          ? slotSessions!.length > 2
+                            ? 'min-w-[180px]'
+                            : slotSessions!.length > 1
+                              ? 'min-w-[140px]'
+                              : 'min-w-[80px]'
+                          : 'min-w-[56px]'
+                      } ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div className="relative">
-                          <div className="grid grid-cols-2 gap-0.5">
+                        <div className="relative pr-4">
+                          <div className={`grid gap-1 ${slotSessions!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             {slotSessions.map((s) => {
                               const isActive = selectedSessionId === s.id;
                               const sold = s.soldCount ?? 0;
@@ -166,17 +174,17 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                                   key={s.id}
                                   type="button"
                                   onClick={() => onSelectSession(s)}
-                                  className={`flex items-center justify-center rounded border px-1 py-0.5 text-[10px] transition-colors ${
+                                  className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
                                     isActive
                                       ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
                                       : s.isCancelled
                                         ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                        : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                                        : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
                                   }`}
                                 >
-                                  <span className="flex flex-col items-center leading-tight">
+                                  <span className="flex flex-col items-center leading-snug whitespace-nowrap">
                                     <span>{formatTimeRu(s.startsAt)}</span>
-                                    <span className="text-[9px] opacity-70">{sold} / {cap}</span>
+                                    <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
                                   </span>
                                 </button>
                               );
