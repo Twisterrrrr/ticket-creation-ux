@@ -198,9 +198,13 @@ export function ScheduleTab() {
   };
 
 
-  // Select session (for action bar)
+  // Select session (toggle multi-select for action bar)
   const handleSelectSession = (session: AdminEventSessionRow) => {
-    setSelectedSession((prev) => prev?.id === session.id ? null : session);
+    setSelectedSessions((prev) => {
+      const exists = prev.find((s) => s.id === session.id);
+      if (exists) return prev.filter((s) => s.id !== session.id);
+      return [...prev, session];
+    });
   };
 
   // Move session handler (from grid drag-and-drop)
