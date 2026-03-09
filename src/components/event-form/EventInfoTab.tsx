@@ -25,6 +25,8 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
     name: "extraSections",
   });
 
+  const pendingCategoryRef = useRef<{ value: string; label: string } | null>(null);
+
   const handleAddCategory = () => {
     const trimmed = newCatName.trim();
     if (trimmed.length < 2) {
@@ -36,16 +38,25 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
       toast.error("Такая категория уже существует");
       return;
     }
-    // Add category immediately, close dialog, then set form value after unmount
-    setCustomCategories((prev) => [...prev, { value, label: trimmed }]);
+    // Store pending and close dialog — defer ALL state updates to avoid portal conflict
+    pendingCategoryRef.current = { value, label: trimmed };
     setNewCatName("");
     setNewCatDialogOpen(false);
-    toast.success(`Категория «${trimmed}» добавлена`);
-    // Defer form.setValue to next tick so Select re-renders with new option first
-    setTimeout(() => {
-      form.setValue("category", value);
-    }, 100);
   };
+
+  // Apply pending category after dialog animation completes (200ms duration)
+  React.useEffect(() => {
+    if (!newCatDialogOpen && pendingCategoryRef.current) {
+      const cat = pendingCategoryRef.current;
+      pendingCategoryRef.current = null;
+      const timer = setTimeout(() => {
+        setCustomCategories((prev) => [...prev, { value: cat.value, label: cat.label }]);
+        form.setValue("category", cat.value);
+        toast.success(`Категория «${cat.label}» добавлена`);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [newCatDialogOpen, form]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
