@@ -257,9 +257,8 @@ export function ScheduleTab() {
 
 
   const handleBatchConfirmDay = (params: { capacityTotal?: number | null; isActive: boolean }) => {
-    if (!selectionDay.size && !totalAddCountDay) { setBatchOpenDay(false); return; }
+    if (!selectionDay.size) { setBatchOpenDay(false); return; }
     const newSessions: AdminEventSessionRow[] = [];
-    // From selection (empty slots)
     for (const startsAt of selectionDay) {
       newSessions.push({
         id: generateId(),
@@ -270,25 +269,9 @@ export function ScheduleTab() {
         isCancelled: false,
       });
     }
-    // From add counts (occupied slots)
-    addCountsDay.forEach((count, slotKey) => {
-      const [hh, mm] = slotKey.split(':').map(Number);
-      const startsAt = new Date(`${from}T${pad2(hh)}:${pad2(mm)}:00`).toISOString();
-      for (let i = 0; i < count; i++) {
-        newSessions.push({
-          id: generateId(),
-          startsAt,
-          capacity: params.capacityTotal ?? null,
-          soldCount: 0,
-          locked: false,
-          isCancelled: false,
-        });
-      }
-    });
     setSessions((prev) => [...prev, ...newSessions]);
     toast.success(`Создано сеансов: ${newSessions.length}`);
     setSelectionDay(new Set());
-    setAddCountsDay(new Map());
     setBatchOpenDay(false);
   };
 
