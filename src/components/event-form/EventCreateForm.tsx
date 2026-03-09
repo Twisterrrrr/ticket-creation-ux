@@ -77,7 +77,7 @@ const EventCreateForm = () => {
     }
   }, [title]);
 
-  const step1Fields = ["title", "slug", "category", "badge", "description", "shortDescription", "imageUrl", "date", "time", "venue", "city", "ageRestriction"] as const;
+  const step1Fields = ["title", "slug", "category", "badge", "description", "shortDescription", "imageUrl", "venue", "city", "ageRestriction"] as const;
   const step2Fields = ["tickets", "totalQuota"] as const;
 
   const goNext = async () => {

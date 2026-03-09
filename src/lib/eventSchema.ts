@@ -33,6 +33,13 @@ const ticketCategorySchema = z.object({
 
 export type TicketCategory = z.infer<typeof ticketCategorySchema>;
 
+const extraSectionSchema = z.object({
+  title: z.string().trim().min(1, "Укажите заголовок").max(120, "Максимум 120 символов"),
+  content: z.string().trim().min(1, "Укажите содержание").max(2000, "Максимум 2000 символов"),
+});
+
+export type ExtraSection = z.infer<typeof extraSectionSchema>;
+
 export const eventSchema = z.object({
   // Basic Info
   title: z.string().trim().min(3, "Минимум 3 символа").max(120, "Максимум 120 символов"),
@@ -45,10 +52,12 @@ export const eventSchema = z.object({
   description: z.string().trim().min(10, "Минимум 10 символов").max(2000, "Максимум 2000 символов"),
   shortDescription: z.string().trim().max(200, "Максимум 200 символов").optional().or(z.literal("")),
   imageUrl: z.string().url("Введите корректный URL").optional().or(z.literal("")),
+  imageFile: z.any().optional(),
+  extraSections: z.array(extraSectionSchema).default([]),
 
   // Details
-  date: z.string().min(1, "Укажите дату"),
-  time: z.string().min(1, "Укажите время"),
+  date: z.string().optional().or(z.literal("")),
+  time: z.string().optional().or(z.literal("")),
   venue: z.string().trim().min(2, "Минимум 2 символа").max(150, "Максимум 150 символов"),
   city: z.string().trim().min(2, "Минимум 2 символа").max(60, "Максимум 60 символов"),
   ageRestriction: z.string().optional().or(z.literal("")),
@@ -82,6 +91,8 @@ export const defaultEventValues: EventFormData = {
   description: "",
   shortDescription: "",
   imageUrl: "",
+  imageFile: undefined,
+  extraSections: [],
   date: "",
   time: "",
   venue: "",
