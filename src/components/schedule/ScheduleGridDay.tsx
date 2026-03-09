@@ -9,20 +9,18 @@ type Props = {
   date: string;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridSelection;
-  addCounts: Map<string, number>;
   selectedSessionId: string | null;
   onToggleSlot: (startsAtIso: string) => void;
   onSelectSlot: (startsAtIso: string) => void;
   onDeselectSlot: (startsAtIso: string) => void;
   onSelectSession: (session: AdminEventSessionRow) => void;
-  onIncrementAdd: (slotKey: string) => void;
 };
 
 const GRID_HOURS: number[] = [];
 for (let h = 0; h <= 23; h += 1) GRID_HOURS.push(h);
 const STEP_MINUTES = 15;
 
-export function ScheduleGridDay({ date, sessions, selection, addCounts, selectedSessionId, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession, onIncrementAdd }: Props) {
+export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession }: Props) {
   const minutesRows = useMemo(() => {
     const rows: number[] = [];
     for (let m = 0; m < 60; m += STEP_MINUTES) rows.push(m);
@@ -147,59 +145,46 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                   const slotSessions = sessionsByKey.get(key);
                   const hasSession = !!slotSessions?.length;
                   const selected = isSelected(hour, minute);
-                  const addCount = addCounts.get(key) ?? 0;
+                  const sessionCount = slotSessions?.length ?? 0;
+
+                  // Adaptive width: expand based on session count
+                  const widthClass = sessionCount >= 2
+                    ? 'min-w-[160px]'
+                    : sessionCount === 1
+                      ? 'min-w-[80px]'
+                      : 'min-w-[56px]';
 
                   return (
                     <td
                       key={hour}
-                      className={`border-t border-r border-border px-1 py-1 align-top ${
-                        hasSession && slotSessions!.length > 1
-                          ? 'min-w-[160px]'
-                          : hasSession
-                            ? 'min-w-[80px]'
-                            : 'min-w-[56px]'
-                      } ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                      className={`border-t border-r border-border px-1 py-1 align-top ${widthClass} ${hoverHour === hour ? 'bg-muted/30' : ''}`}
                     >
                       {hasSession ? (
-                        <div className="flex items-start gap-1">
-                          <div className={`flex-1 grid gap-1 ${slotSessions!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                            {slotSessions.map((s) => {
-                              const isActive = selectedSessionId === s.id;
-                              const sold = s.soldCount ?? 0;
-                              const cap = s.capacity ?? '∞';
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  onClick={() => onSelectSession(s)}
-                                  className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
-                                    isActive
-                                      ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
-                                      : s.isCancelled
-                                        ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                        : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
-                                  }`}
-                                >
-                                  <span className="flex flex-col items-center leading-snug whitespace-nowrap">
-                                    <span>{formatTimeRu(s.startsAt)}</span>
-                                    <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); onIncrementAdd(key); }}
-                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] transition-colors ${
-                              addCount > 0
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
-                            }`}
-                            title={addCount > 0 ? `Добавить ${addCount} сеанс(ов)` : 'Добавить ещё сеанс'}
-                          >
-                            {addCount > 0 ? addCount : <Plus className="h-2.5 w-2.5" />}
-                          </button>
+                        <div className={`grid gap-1 ${sessionCount > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                          {slotSessions.map((s) => {
+                            const isActive = selectedSessionId === s.id;
+                            const sold = s.soldCount ?? 0;
+                            const cap = s.capacity ?? '∞';
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => onSelectSession(s)}
+                                className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
+                                  isActive
+                                    ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
+                                    : s.isCancelled
+                                      ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
+                                      : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
+                                }`}
+                              >
+                                <span className="flex flex-col items-center leading-snug whitespace-nowrap">
+                                  <span>{formatTimeRu(s.startsAt)}</span>
+                                  <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : (
                         <button

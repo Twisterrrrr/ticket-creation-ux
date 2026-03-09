@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CalendarClock, Plus } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, pad2 } from '@/lib/sessions';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,13 +13,11 @@ type Props = {
   hoursEnd: number;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridRangeSelection;
-  addCounts: Map<string, number>;
   selectedSessionId: string | null;
   onToggleCell: (key: string) => void;
   onSelectCell: (key: string) => void;
   onDeselectCell: (key: string) => void;
   onSelectSession: (session: AdminEventSessionRow) => void;
-  onIncrementAdd: (cellKey: string) => void;
   onMoveSession?: (sessionId: string, newDateKey: string, newHour: number) => void;
 };
 
@@ -53,7 +51,7 @@ function formatDateKeyRu(dateKey: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' });
 }
 
-export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, addCounts, selectedSessionId, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onIncrementAdd, onMoveSession }: Props) {
+export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionId, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
   const dateKeys = useMemo(() => buildDateKeys(fromDateKey, days), [fromDateKey, days]);
   const hours = useMemo(() => buildHours(), []);
 
@@ -202,7 +200,6 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                   const selected = selection.has(cellKey);
                   const hasSessions = !!agg;
                   const isDropTarget = dragOverCell === cellKey;
-                  const addCount = addCounts.get(cellKey) ?? 0;
 
                   return (
                     <td
@@ -213,59 +210,45 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       onDrop={(e) => handleCellDrop(e, cellKey)}
                     >
                       {hasSessions ? (
-                        <div className="flex items-start gap-0.5">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className={`flex-1 grid gap-0.5 ${agg.sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                {agg.sessions.map((s) => {
-                                  const isActive = selectedSessionId === s.id;
-                                  const sold = s.soldCount ?? 0;
-                                  const cap = s.capacity ?? '∞';
-                                  const hasSold = sold > 0;
-                                  return (
-                                    <button
-                                      key={s.id}
-                                      type="button"
-                                      draggable={!hasSold}
-                                      onDragStart={(e) => handleSessionDragStart(e, s.id, cellKey, hasSold)}
-                                      onDragEnd={handleDragEnd}
-                                      onClick={() => onSelectSession(s)}
-                                      className={`flex items-center justify-center rounded border px-0.5 py-0.5 text-[9px] transition-colors ${
-                                        isActive
-                                          ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
-                                          : s.isCancelled
-                                            ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                            : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
-                                      } ${!hasSold ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                                    >
-                                      <span className="flex flex-col items-center leading-tight">
-                                        <span>{formatTimeRu(s.startsAt)}</span>
-                                        <span className="text-[8px] opacity-70">{sold} / {cap}</span>
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <span className="text-[11px]">
-                                {agg.sessions.map((s) => `${formatTimeRu(s.startsAt)} — ${s.soldCount ?? 0}/${s.capacity ?? '∞'}`).join(', ')}
-                              </span>
-                            </TooltipContent>
-                          </Tooltip>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); onIncrementAdd(cellKey); }}
-                            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] transition-colors ${
-                              addCount > 0
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
-                            }`}
-                            title={addCount > 0 ? `Добавить ${addCount} сеанс(ов)` : 'Добавить ещё сеанс'}
-                          >
-                            {addCount > 0 ? addCount : <Plus className="h-2.5 w-2.5" />}
-                          </button>
-                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className={`grid gap-0.5 ${agg.sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                              {agg.sessions.map((s) => {
+                                const isActive = selectedSessionId === s.id;
+                                const sold = s.soldCount ?? 0;
+                                const cap = s.capacity ?? '∞';
+                                const hasSold = sold > 0;
+                                return (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    draggable={!hasSold}
+                                    onDragStart={(e) => handleSessionDragStart(e, s.id, cellKey, hasSold)}
+                                    onDragEnd={handleDragEnd}
+                                    onClick={() => onSelectSession(s)}
+                                    className={`flex items-center justify-center rounded border px-0.5 py-0.5 text-[9px] transition-colors ${
+                                      isActive
+                                        ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
+                                        : s.isCancelled
+                                          ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
+                                          : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                                    } ${!hasSold ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                  >
+                                    <span className="flex flex-col items-center leading-tight">
+                                      <span>{formatTimeRu(s.startsAt)}</span>
+                                      <span className="text-[8px] opacity-70">{sold} / {cap}</span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <span className="text-[11px]">
+                              {agg.sessions.map((s) => `${formatTimeRu(s.startsAt)} — ${s.soldCount ?? 0}/${s.capacity ?? '∞'}`).join(', ')}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
                       ) : (
                         <button
                           type="button"
