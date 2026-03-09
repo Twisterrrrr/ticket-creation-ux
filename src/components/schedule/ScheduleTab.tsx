@@ -532,11 +532,41 @@ export function ScheduleTab() {
             </>
           )}
 
-          {viewMode === 'table' && rows.length > 0 && (
+          {viewMode === 'table' && rows.length > 0 && (() => {
+            const selectedIds = new Set(selectedSessions.map((s) => s.id));
+            const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+            const someSelected = rows.some((r) => selectedIds.has(r.id));
+
+            const toggleAll = () => {
+              if (allSelected) {
+                setSelectedSessions([]);
+              } else {
+                setSelectedSessions([...rows]);
+              }
+            };
+
+            const toggleRow = (r: AdminEventSessionRow) => {
+              if (selectedIds.has(r.id)) {
+                setSelectedSessions((prev) => prev.filter((s) => s.id !== r.id));
+              } else {
+                setSelectedSessions((prev) => [...prev, r]);
+              }
+            };
+
+            return (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border border-input bg-background"
+                        checked={allSelected}
+                        ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                        onChange={toggleAll}
+                      />
+                    </TableHead>
                     <TableHead>Дата</TableHead>
                     <TableHead>Время</TableHead>
                     <TableHead className="text-right">Вместимость</TableHead>
@@ -554,6 +584,7 @@ export function ScheduleTab() {
                     const locked = !!r.locked;
                     const isCancelled = !!r.isCancelled;
                     const reason = r.lockReason;
+                    const isRowSelected = selectedIds.has(r.id);
 
                     let statusBadge;
                     if (isCancelled) {
@@ -584,9 +615,18 @@ export function ScheduleTab() {
                     return (
                       <TableRow
                         key={r.id}
-                        className={isCancelled ? 'opacity-60' : undefined}
+                        className={`${isCancelled ? 'opacity-60' : ''} ${isRowSelected ? 'bg-primary/5' : ''}`}
                         onPointerDown={(e) => onSessionPointerDown(e as any, r.id)}
                       >
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border border-input bg-background"
+                            checked={isRowSelected}
+                            onChange={() => toggleRow(r)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">{date}</TableCell>
                         <TableCell>{time}</TableCell>
                         <TableCell className="text-right">{cap}</TableCell>
@@ -634,7 +674,8 @@ export function ScheduleTab() {
                 </TableBody>
               </Table>
             </div>
-          )}
+            );
+          })()}
         </CardContent>
       </Card>
 
