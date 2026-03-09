@@ -216,7 +216,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                         <div className="relative">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="flex flex-col gap-0.5">
+                              <div className="grid grid-cols-2 gap-0.5">
                                 {agg.sessions.map((s) => {
                                   const isActive = selectedSessionId === s.id;
                                   const sold = s.soldCount ?? 0;
