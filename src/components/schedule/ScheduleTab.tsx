@@ -473,7 +473,7 @@ export function ScheduleTab() {
                     date={selectedDate}
                     sessions={rows}
                     selection={selectionDay}
-                    selectedSessionId={selectedSessions.length === 1 ? selectedSessions[0].id : null}
+                    selectedSessionIds={new Set(selectedSessions.map((s) => s.id))}
                     onToggleSlot={handleToggleSlotDay}
                     onSelectSlot={handleSelectSlotDay}
                     onDeselectSlot={handleDeselectSlotDay}
