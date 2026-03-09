@@ -37,9 +37,12 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
       return;
     }
     setCustomCategories((prev) => [...prev, { value, label: trimmed }]);
-    form.setValue("category", value);
     setNewCatName("");
     setNewCatDialogOpen(false);
+    // Defer form update to avoid Radix portal conflict between Dialog and Select
+    setTimeout(() => {
+      form.setValue("category", value);
+    }, 0);
     toast.success(`Категория «${trimmed}» добавлена`);
   };
 
