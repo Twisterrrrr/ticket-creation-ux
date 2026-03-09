@@ -16,6 +16,7 @@ import { ScheduleBatchCreateDialog } from '@/components/schedule/ScheduleBatchCr
 import { ScheduleBatchCreateRangeDialog } from '@/components/schedule/ScheduleBatchCreateRangeDialog';
 import { CreateSessionDialog } from '@/components/schedule/CreateSessionDialog';
 import { EditSessionDialog } from '@/components/schedule/EditSessionDialog';
+import { BulkEditTimeDialog } from '@/components/schedule/BulkEditTimeDialog';
 import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
