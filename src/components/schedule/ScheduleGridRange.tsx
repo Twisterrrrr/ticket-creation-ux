@@ -175,7 +175,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed border-t border-border text-[11px]">
+        <table className="border-t border-border text-[11px]">
           <thead>
             <tr>
               <th className="w-20 border-r border-border bg-muted/50 px-1 py-1 text-left text-[10px] font-medium text-muted-foreground">
