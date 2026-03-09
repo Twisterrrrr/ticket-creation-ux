@@ -277,9 +277,8 @@ export function ScheduleTab() {
 
   const handleBatchConfirmRange = (params: { capacityTotal?: number | null; isActive: boolean; minutesByKey: Record<string, number[]> }) => {
     const selArr = Array.from(selectionRange);
-    if (!selArr.length && !totalAddCountRange) { setBatchOpenRange(false); return; }
+    if (!selArr.length) { setBatchOpenRange(false); return; }
     const newSessions: AdminEventSessionRow[] = [];
-    // From selection (empty slots)
     for (const key of selArr) {
       const [dateKey, hourStr] = key.split('|');
       const hour = Number.parseInt(hourStr, 10);
@@ -295,25 +294,9 @@ export function ScheduleTab() {
         });
       }
     }
-    // From add counts (occupied slots)
-    addCountsRange.forEach((count, cellKey) => {
-      const [dateKey, hourStr] = cellKey.split('|');
-      const hour = Number.parseInt(hourStr, 10);
-      for (let i = 0; i < count; i++) {
-        newSessions.push({
-          id: generateId(),
-          startsAt: new Date(`${dateKey}T${pad2(hour)}:00:00`).toISOString(),
-          capacity: params.capacityTotal ?? null,
-          soldCount: 0,
-          locked: false,
-          isCancelled: false,
-        });
-      }
-    });
     setSessions((prev) => [...prev, ...newSessions]);
     toast.success(`Создано сеансов: ${newSessions.length}`);
     setSelectionRange(new Set());
-    setAddCountsRange(new Map());
     setBatchOpenRange(false);
   };
 
