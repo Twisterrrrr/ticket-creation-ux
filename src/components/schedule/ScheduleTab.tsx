@@ -160,7 +160,7 @@ export function ScheduleTab() {
     },
   });
 
-  const preset = (days: 30 | 90 | 180) => { setFrom(isoToday()); setTo(addDaysIso(isoToday(), days)); };
+  
 
   // Day grid handlers
   const handleSelectSlotDay = (startsAtIso: string) => {
