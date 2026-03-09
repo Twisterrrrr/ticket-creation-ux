@@ -99,7 +99,7 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
                   <p className="text-xs text-muted-foreground">{ticket.quota ? `${ticket.quota} шт.` : "Без ограничения"}</p>
                 </div>
                 <p className="font-bold text-foreground">
-                  {ticket.price ? `${ticket.price.toLocaleString()} ₸` : "Бесплатно"}
+                  {ticket.price ? `${ticket.price.toLocaleString()} ₽` : "Бесплатно"}
                 </p>
               </div>
             ))}
