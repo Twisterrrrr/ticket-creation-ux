@@ -179,7 +179,7 @@ const EventCreateForm = () => {
 };
 
 // Step 1: Info sections
-function Step1({ form }: { form: ReturnType<typeof useForm<EventFormData>> }) {
+function Step1({ form }: { form: UseFormReturn<EventFormData> }) {
   return (
     <div className="space-y-8">
       <FormSection icon={<Type className="w-4 h-4" />} title="Основное" description="Название и категория">
