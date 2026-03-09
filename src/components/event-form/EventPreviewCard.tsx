@@ -9,6 +9,8 @@ interface EventPreviewCardProps {
 
 const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
   const categoryLabel = categories.find((c) => c.value === data.category)?.label || data.category;
+  const minPrice = data.tickets.length > 0 ? Math.min(...data.tickets.map((t) => t.price)) : 0;
+  const totalQuantity = data.tickets.reduce((sum, t) => sum + t.quantity, 0);
 
   return (
     <div className="space-y-6">
@@ -88,13 +90,25 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-border">
-            <div>
-              <p className="text-xs text-muted-foreground">{data.ticketName || "Билет"}</p>
-              <p className="text-xl font-bold text-foreground">
-                {data.price ? `${data.price.toLocaleString()} ₸` : "Бесплатно"}
-              </p>
-            </div>
+          {/* Ticket categories list */}
+          <div className="pt-3 border-t border-border space-y-2">
+            {data.tickets.map((ticket, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{ticket.name || `Категория ${i + 1}`}</p>
+                  <p className="text-xs text-muted-foreground">{ticket.quantity} шт.</p>
+                </div>
+                <p className="font-bold text-foreground">
+                  {ticket.price ? `${ticket.price.toLocaleString()} ₸` : "Бесплатно"}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">
+              от <span className="text-lg font-bold text-foreground">{minPrice ? `${minPrice.toLocaleString()} ₸` : "Бесплатно"}</span>
+            </p>
             <div className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold text-sm">
               Купить
             </div>
@@ -105,8 +119,10 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
       <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
         <p className="font-medium text-foreground">Сводка</p>
         <div className="grid grid-cols-2 gap-2 text-muted-foreground">
-          <span>Количество билетов:</span>
-          <span className="text-foreground font-medium">{data.quantity}</span>
+          <span>Категорий билетов:</span>
+          <span className="text-foreground font-medium">{data.tickets.length}</span>
+          <span>Всего билетов:</span>
+          <span className="text-foreground font-medium">{totalQuantity}</span>
           <span>Комиссия:</span>
           <span className="text-foreground font-medium">{data.commission || 0}%</span>
           <span>Slug:</span>
