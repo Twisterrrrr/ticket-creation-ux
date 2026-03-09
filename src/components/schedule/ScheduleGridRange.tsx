@@ -51,7 +51,7 @@ function formatDateKeyRu(dateKey: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' });
 }
 
-export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionId, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
+export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionIds, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
   const dateKeys = useMemo(() => buildDateKeys(fromDateKey, days), [fromDateKey, days]);
   const hours = useMemo(() => buildHours(), []);
 
