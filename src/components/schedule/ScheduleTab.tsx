@@ -21,6 +21,7 @@ import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
 import { SessionActionBar } from '@/components/schedule/SessionActionBar';
+import { SessionSalesDialog } from '@/components/schedule/SessionSalesDialog';
 import { DragLayer } from '@/components/schedule/DragLayer';
 import { useSessionDrag } from '@/components/schedule/useSessionDrag';
 
