@@ -213,7 +213,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       {hasSessions ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className={`relative z-10 ${sessionCount >= 3 ? 'grid grid-cols-2 gap-0.5' : 'flex flex-col gap-0.5'}`} style={sessionCount >= 3 ? { width: '96px' } : undefined}>
+                            <div className="relative z-10 flex flex-col gap-0.5">
                               <button
                                 type="button"
                                 onClick={() => onToggleCell(cellKey)}
