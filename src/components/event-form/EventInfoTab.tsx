@@ -248,24 +248,6 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
           )} />
         </div>
       </FormSection>
-
-      {/* New Category Dialog */}
-      <Dialog open={newCatDialogOpen} onOpenChange={setNewCatDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Новая категория</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Название категории</label>
-              <Input placeholder="Например: Мастер-класс" value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddCategory()} />
-            </div>
-            <Button className="w-full" onClick={handleAddCategory}>Добавить</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
