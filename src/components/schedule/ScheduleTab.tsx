@@ -466,23 +466,20 @@ export function ScheduleTab() {
                     hoursEnd={23}
                     sessions={rows}
                     selection={selectionRange}
-                    addCounts={addCountsRange}
                     selectedSessionId={selectedSession?.id ?? null}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
                     onSelectSession={handleSelectSession}
-                    onIncrementAdd={handleIncrementAddRange}
                     onMoveSession={handleMoveSession}
                   />
                   {showBatchBarRange && (
                     <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                       <div>
-                        {selectionRange.size > 0 && <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>}
-                        {totalAddCountRange > 0 && <span className="ml-2">Добавить в существующие: <span className="font-medium text-foreground">{totalAddCountRange}</span></span>}
+                        <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); setAddCountsRange(new Map()); }}>Очистить выбор</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); }}>Очистить выбор</Button>
                         <Button variant="default" size="sm" onClick={() => setBatchOpenRange(true)}>Добавить</Button>
                       </div>
                     </div>
