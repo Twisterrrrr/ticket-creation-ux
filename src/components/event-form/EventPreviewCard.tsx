@@ -10,7 +10,7 @@ interface EventPreviewCardProps {
 const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
   const categoryLabel = categories.find((c) => c.value === data.category)?.label || data.category;
   const minPrice = data.tickets.length > 0 ? Math.min(...data.tickets.map((t) => t.price)) : 0;
-  const totalQuantity = data.tickets.reduce((sum, t) => sum + t.quantity, 0);
+  const totalQuantity = data.tickets.reduce((sum, t) => sum + (t.quota || 0), 0);
 
   return (
     <div className="space-y-6">
