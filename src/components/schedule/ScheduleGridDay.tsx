@@ -1,0 +1,148 @@
+import { useMemo, useState } from 'react';
+import { CalendarClock, Plus } from 'lucide-react';
+import type { AdminEventSessionRow } from '@/components/schedule/types';
+import { formatTimeRu, isoToDateInput } from '@/lib/sessions';
+
+export type ScheduleGridSelection = Set<string>;
+
+type Props = {
+  date: string;
+  sessions: AdminEventSessionRow[];
+  selection: ScheduleGridSelection;
+  onToggleSlot: (startsAtIso: string) => void;
+  onEditSession: (session: AdminEventSessionRow) => void;
+};
+
+const GRID_HOURS: number[] = [];
+for (let h = 10; h < 24; h += 1) GRID_HOURS.push(h);
+GRID_HOURS.push(0, 1);
+const STEP_MINUTES = 15;
+
+export function ScheduleGridDay({ date, sessions, selection, onToggleSlot, onEditSession }: Props) {
+  const minutesRows = useMemo(() => {
+    const rows: number[] = [];
+    for (let m = 0; m < 60; m += STEP_MINUTES) rows.push(m);
+    return rows;
+  }, []);
+
+  const [hoverHour, setHoverHour] = useState<number | null>(null);
+
+  const sessionsByKey = useMemo(() => {
+    const map = new Map<string, AdminEventSessionRow>();
+    for (const s of sessions) {
+      if (isoToDateInput(s.startsAt) !== date) continue;
+      const d = new Date(s.startsAt);
+      const key = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      if (!map.has(key)) map.set(key, s);
+    }
+    return map;
+  }, [sessions, date]);
+
+  const handleCellClick = (hour: number, minute: number) => {
+    const startsAtIso = new Date(`${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`).toISOString();
+    const session = sessionsByKey.get(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+    if (session) {
+      onEditSession(session);
+    } else {
+      onToggleSlot(startsAtIso);
+    }
+  };
+
+  const isSelected = (hour: number, minute: number) => {
+    const iso = new Date(`${date}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`).toISOString();
+    return selection.has(iso);
+  };
+
+  const headerDateLabel = useMemo(() => {
+    const d = new Date(`${date}T00:00:00`);
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  }, [date]);
+
+  return (
+    <div className="mt-4 rounded-lg border border-border">
+      <div className="flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <CalendarClock className="h-3.5 w-3.5" />
+          <span>Сетка за день</span>
+          <span className="font-medium text-foreground">{headerDateLabel}</span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            Слот к созданию
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground" />
+            Уже созданный сеанс
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-t border-border text-[11px]">
+          <thead>
+            <tr>
+              <th className="w-16 border-r border-border bg-muted/50 px-2 py-1 text-left text-[10px] font-medium text-muted-foreground">
+                Время
+              </th>
+              {GRID_HOURS.map((h) => (
+                <th
+                  key={h}
+                  className="min-w-[56px] border-r border-border bg-muted/50 px-2 py-1 text-center text-[10px] font-medium text-muted-foreground"
+                  onMouseEnter={() => setHoverHour(h)}
+                  onMouseLeave={() => setHoverHour((prev) => (prev === h ? null : prev))}
+                >
+                  {h.toString().padStart(2, '0')}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {minutesRows.map((minute) => (
+              <tr key={minute}>
+                <td className="border-r border-t border-border bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground">
+                  {minute.toString().padStart(2, '0')}
+                </td>
+                {GRID_HOURS.map((hour) => {
+                  const key = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                  const session = sessionsByKey.get(key);
+                  const selected = isSelected(hour, minute);
+
+                  return (
+                    <td
+                      key={hour}
+                      className={`border-t border-r border-border px-0.5 py-0.5 align-top ${hoverHour === hour ? 'bg-muted/30' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleCellClick(hour, minute)}
+                        className={`flex h-7 w-full items-center justify-center rounded border text-[10px] transition-colors ${
+                          session
+                            ? 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                            : selected
+                              ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
+                              : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
+                        }`}
+                        title={
+                          session
+                            ? `${formatTimeRu(session.startsAt)} · ${session.capacity ?? '—'} мест · продано ${session.soldCount}`
+                            : 'Создать слот'
+                        }
+                      >
+                        {session ? (
+                          <span className="truncate">{formatTimeRu(session.startsAt)}</span>
+                        ) : selected ? (
+                          <Plus className="h-3 w-3" />
+                        ) : null}
+                      </button>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
