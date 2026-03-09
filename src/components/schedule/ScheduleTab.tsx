@@ -96,7 +96,12 @@ export function ScheduleTab() {
     newHour: number;
   } | null>(null);
 
-  const rangeDays = useMemo(() => diffDays(from, to), [from, to]);
+  const gridDetailMode = rangePreset === 'day' ? 'day' : 'range';
+
+  const rangeDays = useMemo(() => {
+    if (rangePreset === 'day') return 1;
+    return diffDays(from, to);
+  }, [from, to, rangePreset]);
 
   const rows = useMemo(() => {
     return sessions.filter((s) => {
