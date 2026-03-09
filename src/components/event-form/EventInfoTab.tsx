@@ -83,21 +83,40 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
           <FormField control={form.control} name="category" render={({ field }) => (
             <FormItem>
               <FormLabel>Категория *</FormLabel>
-              <div className="flex gap-2">
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите..." /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {allCategories.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button type="button" variant="outline" size="icon" className="shrink-0" onClick={() => setNewCatDialogOpen(true)}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              {!showNewCatInput ? (
+                <div className="flex gap-2">
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите..." /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {allCategories.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" variant="outline" size="icon" className="shrink-0" onClick={() => setShowNewCatInput(true)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Новая категория..."
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCategory())}
+                    autoFocus
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="default" size="icon" className="shrink-0" onClick={handleAddCategory}>
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => { setShowNewCatInput(false); setNewCatName(""); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )} />
