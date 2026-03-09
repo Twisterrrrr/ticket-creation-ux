@@ -90,8 +90,9 @@ export function ScheduleTab() {
   const [batchOpenDay, setBatchOpenDay] = useState(false);
   const [batchOpenRange, setBatchOpenRange] = useState(false);
 
-  // Selected session for action bar
-  const [selectedSession, setSelectedSession] = useState<AdminEventSessionRow | null>(null);
+  // Selected sessions for action bar (multi-select)
+  const [selectedSessions, setSelectedSessions] = useState<AdminEventSessionRow[]>([]);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
 
   // Move session dialog state
