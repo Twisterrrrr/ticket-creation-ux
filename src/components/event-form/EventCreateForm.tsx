@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm, useFieldArray, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { eventSchema, EventFormData, defaultEventValues, categories, ageRestrictions } from "@/lib/eventSchema";
+import { eventSchema, EventFormData, defaultEventValues, defaultTicket, categories, ageRestrictions } from "@/lib/eventSchema";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
