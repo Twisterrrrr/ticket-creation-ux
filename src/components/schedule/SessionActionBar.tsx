@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 
 type Props = {
-  session: AdminEventSessionRow;
+  sessions: AdminEventSessionRow[];
   onDeselect: () => void;
   onAdd: () => void;
   onEdit: () => void;
@@ -11,21 +11,21 @@ type Props = {
   onDelete: () => void;
 };
 
-export function SessionActionBar({ session, onDeselect, onAdd, onEdit, onStop, onDelete }: Props) {
-  const hasSold = (session.soldCount ?? 0) > 0;
-  const isCancelled = session.isCancelled;
-  const isLocked = session.locked;
+export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete }: Props) {
+  const count = sessions.length;
+  const hasSold = sessions.some((s) => (s.soldCount ?? 0) > 0);
+  const hasLocked = sessions.some((s) => s.locked);
+  const hasCancelled = sessions.some((s) => s.isCancelled);
 
-  const canEdit = !isLocked && !isCancelled;
-  const canStop = !isLocked && !isCancelled;
-  // Delete: if sold, only admin after refunds
-  const canDelete = isCancelled ? session.soldCount === 0 : !isLocked && !hasSold;
+  const canEdit = !hasLocked && !hasCancelled;
+  const canStop = !hasLocked && !hasCancelled;
+  const canDelete = sessions.every((s) => s.isCancelled ? s.soldCount === 0 : !s.locked && (s.soldCount ?? 0) === 0);
 
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 shadow-sm">
       <Button variant="outline" size="sm" className="gap-1.5" onClick={onDeselect}>
         <X className="h-3.5 w-3.5" />
-        Отменить выбор
+        {count > 1 ? `Снять выбор (${count})` : 'Отменить выбор'}
       </Button>
       <Button
         size="sm"
@@ -43,7 +43,7 @@ export function SessionActionBar({ session, onDeselect, onAdd, onEdit, onStop, o
         title={!canEdit ? (hasSold ? 'Перенос возможен только с уведомлением покупателям' : 'Редактирование недоступно') : undefined}
       >
         <Pencil className="h-3.5 w-3.5" />
-        Изменить
+        Изменить{count > 1 ? ` (${count})` : ''}
       </Button>
       <Button
         size="sm"
@@ -67,7 +67,7 @@ export function SessionActionBar({ session, onDeselect, onAdd, onEdit, onStop, o
       </Button>
       {hasSold && (
         <span className="ml-2 text-[11px] text-destructive">
-          Есть продажи ({session.soldCount}) — перенос с уведомлением, удаление после возвратов
+          Есть продажи — перенос с уведомлением, удаление после возвратов
         </span>
       )}
     </div>
