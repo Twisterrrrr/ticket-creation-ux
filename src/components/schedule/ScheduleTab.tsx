@@ -653,6 +653,13 @@ export function ScheduleTab() {
         />
       )}
 
+      <BulkEditTimeDialog
+        open={bulkEditOpen}
+        onOpenChange={(open) => { if (!open) setBulkEditOpen(false); }}
+        sessions={selectedSessions}
+        onSave={bulkUpdateTime}
+      />
+
       <EditSessionDialog
         open={!!editing}
         onOpenChange={(open) => { if (!open) setEditing(null); }}
