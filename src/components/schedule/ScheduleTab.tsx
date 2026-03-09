@@ -94,6 +94,7 @@ export function ScheduleTab() {
   // Selected sessions for action bar (multi-select)
   const [selectedSessions, setSelectedSessions] = useState<AdminEventSessionRow[]>([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [salesSession, setSalesSession] = useState<AdminEventSessionRow | null>(null);
 
 
   // Move session dialog state
