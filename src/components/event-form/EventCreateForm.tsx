@@ -170,7 +170,6 @@ const EventCreateForm = () => {
     </div>
   );
 };
-};
 
 // Step 1: Info sections
 function Step1({ form }: { form: UseFormReturn<EventFormData> }) {
