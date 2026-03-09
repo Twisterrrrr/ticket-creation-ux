@@ -91,6 +91,8 @@ export const defaultEventValues: EventFormData = {
   description: "",
   shortDescription: "",
   imageUrl: "",
+  imageFile: undefined,
+  extraSections: [],
   date: "",
   time: "",
   venue: "",
