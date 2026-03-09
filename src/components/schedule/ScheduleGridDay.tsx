@@ -9,7 +9,7 @@ type Props = {
   date: string;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridSelection;
-  selectedSessionId: string | null;
+  selectedSessionIds: Set<string>;
   onToggleSlot: (startsAtIso: string) => void;
   onSelectSlot: (startsAtIso: string) => void;
   onDeselectSlot: (startsAtIso: string) => void;
