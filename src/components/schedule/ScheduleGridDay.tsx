@@ -174,17 +174,17 @@ export function ScheduleGridDay({ date, sessions, selection, addCounts, selected
                                   key={s.id}
                                   type="button"
                                   onClick={() => onSelectSession(s)}
-                                  className={`flex items-center justify-center rounded border px-1 py-0.5 text-[10px] transition-colors ${
+                                  className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
                                     isActive
                                       ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
                                       : s.isCancelled
                                         ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                        : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                                        : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
                                   }`}
                                 >
-                                  <span className="flex flex-col items-center leading-tight">
+                                  <span className="flex flex-col items-center leading-snug whitespace-nowrap">
                                     <span>{formatTimeRu(s.startsAt)}</span>
-                                    <span className="text-[9px] opacity-70">{sold} / {cap}</span>
+                                    <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
                                   </span>
                                 </button>
                               );
