@@ -257,8 +257,20 @@ export function ScheduleTab() {
 
   const cancelSession = (sessionId: string, reason?: string) => {
     setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, isCancelled: true, canceledAt: new Date().toISOString(), cancelReason: reason } : s));
-    setSelectedSession(null);
+    setSelectedSessions([]);
     toast.success('Сеанс отменён');
+  };
+
+  const bulkUpdateTime = (sessionIds: string[], newTime: string) => {
+    setSessions((prev) => prev.map((s) => {
+      if (!sessionIds.includes(s.id)) return s;
+      const d = new Date(s.startsAt);
+      const [h, m] = newTime.split(':').map(Number);
+      d.setHours(h, m, 0, 0);
+      return { ...s, startsAt: d.toISOString() };
+    }));
+    setSelectedSessions([]);
+    toast.success(`Время изменено для ${sessionIds.length} сеансов`);
   };
 
 
