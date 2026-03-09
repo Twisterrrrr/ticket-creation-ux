@@ -251,7 +251,7 @@ export function ScheduleTab() {
 
   const deleteSession = (sessionId: string) => {
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    setSelectedSession(null);
+    setSelectedSessions([]);
     toast.success('Сеанс удалён');
   };
 
