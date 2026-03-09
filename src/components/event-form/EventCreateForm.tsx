@@ -105,14 +105,8 @@ const EventCreateForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Создание события</h1>
-          <p className="text-sm text-muted-foreground mt-1">Заполните информацию о вашем мероприятии</p>
-        </div>
-
-        <StepIndicator steps={STEPS} currentStep={step} />
+    <div className="max-w-2xl mx-auto">
+      <StepIndicator steps={STEPS} currentStep={step} />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
