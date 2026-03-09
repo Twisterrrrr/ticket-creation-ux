@@ -205,7 +205,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                   return (
                     <td
                       key={h}
-                      className={`relative border-t border-r border-border px-0.5 py-0.5 align-top min-w-[44px] ${isDropTarget ? 'bg-primary/20' : ''}`}
+                      className={`relative border-t border-r border-border px-0.5 py-0.5 align-top ${sessionCount >= 3 ? 'min-w-[96px]' : 'min-w-[44px]'} ${isDropTarget ? 'bg-primary/20' : ''}`}
                       onDragOver={(e) => handleCellDragOver(e, cellKey)}
                       onDragLeave={handleCellDragLeave}
                       onDrop={(e) => handleCellDrop(e, cellKey)}
