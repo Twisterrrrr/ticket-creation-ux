@@ -45,7 +45,7 @@ export function EventInfoTab({ form }: { form: UseFormReturn<EventFormData> }) {
   };
 
   // Apply pending category after dialog animation completes (200ms duration)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!newCatDialogOpen && pendingCategoryRef.current) {
       const cat = pendingCategoryRef.current;
       pendingCategoryRef.current = null;
