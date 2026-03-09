@@ -357,8 +357,6 @@ export function ScheduleTab() {
                     setSelectionDay(new Set());
                     setSelectionRange(new Set());
                     setSelectedSession(null);
-                    setAddCountsDay(new Map());
-                    setAddCountsRange(new Map());
                     if (days > 0) {
                       setFrom(isoToday());
                       setTo(addDaysIso(isoToday(), days - 1));
