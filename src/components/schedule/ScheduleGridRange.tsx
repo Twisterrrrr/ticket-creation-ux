@@ -213,10 +213,10 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                       onDrop={(e) => handleCellDrop(e, cellKey)}
                     >
                       {hasSessions ? (
-                        <div className="relative">
+                        <div className="flex items-start gap-0.5">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="grid grid-cols-2 gap-0.5">
+                              <div className={`flex-1 grid gap-0.5 ${agg.sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {agg.sessions.map((s) => {
                                   const isActive = selectedSessionId === s.id;
                                   const sold = s.soldCount ?? 0;
@@ -256,7 +256,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onIncrementAdd(cellKey); }}
-                            className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[8px] transition-colors ${
+                            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] transition-colors ${
                               addCount > 0
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted-foreground/20 text-muted-foreground hover:bg-primary/60 hover:text-primary-foreground'
