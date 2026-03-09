@@ -374,7 +374,7 @@ export function ScheduleTab() {
                     setRangePreset(key);
                     setSelectionDay(new Set());
                     setSelectionRange(new Set());
-                    setSelectedSession(null);
+                    setSelectedSessions([]);
                     if (days > 0) {
                       setFrom(isoToday());
                       setTo(addDaysIso(isoToday(), days - 1));
