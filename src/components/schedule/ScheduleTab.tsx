@@ -414,30 +414,48 @@ export function ScheduleTab() {
 
         <CardContent>
           {/* Session action bar */}
-          {selectedSession && (
+          {selectedSessions.length > 0 && (
             <div className="mb-3">
               <SessionActionBar
-                session={selectedSession}
-                onDeselect={() => setSelectedSession(null)}
+                sessions={selectedSessions}
+                onDeselect={() => setSelectedSessions([])}
                 onAdd={() => {
                   setCreating(true);
-                  // Could pre-fill time from selected session
                 }}
                 onEdit={() => {
-                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
-                  if (hasSold) {
-                    toast.info('Перенос будет выполнен с автоматическим уведомлением покупателям');
+                  if (selectedSessions.length === 1) {
+                    const s = selectedSessions[0];
+                    const hasSold = (s.soldCount ?? 0) > 0;
+                    if (hasSold) {
+                      toast.info('Перенос будет выполнен с автоматическим уведомлением покупателям');
+                    }
+                    setEditing(s);
+                  } else {
+                    setBulkEditOpen(true);
                   }
-                  setEditing(selectedSession);
                 }}
-                onStop={() => setStopping(selectedSession)}
-                onDelete={() => {
-                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
-                  if (hasSold) {
-                    toast.error('Удаление возможно только после осуществления возвратов через админа');
-                    return;
+                onStop={() => {
+                  if (selectedSessions.length === 1) setStopping(selectedSessions[0]);
+                  else {
+                    for (const s of selectedSessions) cancelSession(s.id);
                   }
-                  setDeleting(selectedSession);
+                }}
+                onDelete={() => {
+                  if (selectedSessions.length === 1) {
+                    const s = selectedSessions[0];
+                    if ((s.soldCount ?? 0) > 0) {
+                      toast.error('Удаление возможно только после осуществления возвратов через админа');
+                      return;
+                    }
+                    setDeleting(s);
+                  } else {
+                    const withSold = selectedSessions.filter((s) => (s.soldCount ?? 0) > 0);
+                    if (withSold.length) {
+                      toast.error(`${withSold.length} сеансов с продажами — удаление невозможно`);
+                      return;
+                    }
+                    for (const s of selectedSessions) deleteSession(s.id);
+                  }
                 }}
               />
             </div>
