@@ -78,7 +78,7 @@ const EventCreateForm = () => {
   }, [title]);
 
   const step1Fields = ["title", "slug", "category", "badge", "description", "shortDescription", "imageUrl", "date", "time", "venue", "city", "ageRestriction"] as const;
-  const step2Fields = ["tickets", "commission"] as const;
+  const step2Fields = ["tickets", "totalQuota"] as const;
 
   const goNext = async () => {
     const fieldsToValidate = step === 0 ? [...step1Fields] : [...step2Fields];
@@ -339,10 +339,10 @@ function Step2({ form }: { form: UseFormReturn<EventFormData> }) {
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name={`tickets.${index}.quantity`} render={({ field }) => (
+              <FormField control={form.control} name={`tickets.${index}.quota`} render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs">Количество *</FormLabel>
-                  <FormControl><Input type="number" min={1} placeholder="100" {...field} /></FormControl>
+                  <FormLabel className="text-xs">Квота</FormLabel>
+                  <FormControl><Input type="number" min={0} placeholder="Без ограничения" {...field} value={field.value ?? ""} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -358,16 +358,6 @@ function Step2({ form }: { form: UseFormReturn<EventFormData> }) {
         >
           <Plus className="w-4 h-4" /> Добавить категорию
         </Button>
-
-        <FieldWithHint hint="Процент комиссии, который добавляется к цене билета при покупке">
-          <FormField control={form.control} name="commission" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Общая комиссия (%)</FormLabel>
-              <FormControl><Input type="number" min={0} max={100} placeholder="10" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-        </FieldWithHint>
       </div>
     </FormSection>
   );

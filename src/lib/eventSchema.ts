@@ -1,9 +1,34 @@
 import { z } from "zod";
 
+export const ticketTypes = [
+  { value: "general", label: "Общий" },
+  { value: "adult", label: "Взрослый" },
+  { value: "child", label: "Детский" },
+  { value: "discounted", label: "Льготный" },
+] as const;
+
+export const weekDays = [
+  { value: "mon", label: "ПН" },
+  { value: "tue", label: "ВТ" },
+  { value: "wed", label: "СР" },
+  { value: "thu", label: "ЧТ" },
+  { value: "fri", label: "ПТ" },
+  { value: "sat", label: "СБ" },
+  { value: "sun", label: "ВС" },
+] as const;
+
 const ticketCategorySchema = z.object({
   name: z.string().trim().min(2, "Минимум 2 символа").max(80, "Максимум 80 символов"),
   price: z.coerce.number().min(0, "Цена не может быть отрицательной"),
-  quantity: z.coerce.number().int().min(1, "Минимум 1 билет"),
+  ticketType: z.string().default("general"),
+  note: z.string().max(200, "Максимум 200 символов").optional().or(z.literal("")),
+  quota: z.coerce.number().int().min(0).optional(),
+  mealIncluded: z.boolean().default(false),
+  weekdayRestriction: z.boolean().default(false),
+  weekdays: z.array(z.string()).default([]),
+  groupTicket: z.boolean().default(false),
+  groupSize: z.coerce.number().int().min(1).default(1),
+  nonIndependent: z.boolean().default(false),
 });
 
 export type TicketCategory = z.infer<typeof ticketCategorySchema>;
@@ -29,8 +54,8 @@ export const eventSchema = z.object({
   ageRestriction: z.string().optional().or(z.literal("")),
 
   // Tickets
+  totalQuota: z.coerce.number().int().min(1, "Минимум 1 место").optional(),
   tickets: z.array(ticketCategorySchema).min(1, "Добавьте хотя бы одну категорию билетов"),
-  commission: z.coerce.number().min(0).max(100, "Максимум 100%").optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
@@ -38,7 +63,15 @@ export type EventFormData = z.infer<typeof eventSchema>;
 export const defaultTicket: TicketCategory = {
   name: "",
   price: 0,
-  quantity: 100,
+  ticketType: "general",
+  note: "",
+  quota: undefined,
+  mealIncluded: false,
+  weekdayRestriction: false,
+  weekdays: [],
+  groupTicket: false,
+  groupSize: 1,
+  nonIndependent: false,
 };
 
 export const defaultEventValues: EventFormData = {
@@ -54,8 +87,8 @@ export const defaultEventValues: EventFormData = {
   venue: "",
   city: "",
   ageRestriction: "",
+  totalQuota: undefined,
   tickets: [{ ...defaultTicket }],
-  commission: 10,
 };
 
 export const categories = [
