@@ -116,7 +116,7 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-t border-border text-[11px]">
+        <table className="border-t border-border text-[11px]">
           <thead>
             <tr>
               <th className="w-16 border-r border-border bg-muted/50 px-2 py-1 text-left text-[10px] font-medium text-muted-foreground">
