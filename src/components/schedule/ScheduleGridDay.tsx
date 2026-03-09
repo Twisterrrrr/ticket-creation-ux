@@ -9,7 +9,7 @@ type Props = {
   date: string;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridSelection;
-  selectedSessionId: string | null;
+  selectedSessionIds: Set<string>;
   onToggleSlot: (startsAtIso: string) => void;
   onSelectSlot: (startsAtIso: string) => void;
   onDeselectSlot: (startsAtIso: string) => void;
@@ -20,7 +20,7 @@ const GRID_HOURS: number[] = [];
 for (let h = 0; h <= 23; h += 1) GRID_HOURS.push(h);
 const STEP_MINUTES = 15;
 
-export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession }: Props) {
+export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds, onToggleSlot, onSelectSlot, onDeselectSlot, onSelectSession }: Props) {
   const minutesRows = useMemo(() => {
     const rows: number[] = [];
     for (let m = 0; m < 60; m += STEP_MINUTES) rows.push(m);
@@ -163,7 +163,7 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionId, 
                             <Plus className="h-2.5 w-2.5" />
                           </button>
                           {slotSessions.map((s) => {
-                            const isActive = selectedSessionId === s.id;
+                            const isActive = selectedSessionIds.has(s.id);
                             const sold = s.soldCount ?? 0;
                             const cap = s.capacity ?? '∞';
                             return (

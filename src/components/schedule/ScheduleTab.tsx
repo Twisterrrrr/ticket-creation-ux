@@ -16,6 +16,7 @@ import { ScheduleBatchCreateDialog } from '@/components/schedule/ScheduleBatchCr
 import { ScheduleBatchCreateRangeDialog } from '@/components/schedule/ScheduleBatchCreateRangeDialog';
 import { CreateSessionDialog } from '@/components/schedule/CreateSessionDialog';
 import { EditSessionDialog } from '@/components/schedule/EditSessionDialog';
+import { BulkEditTimeDialog } from '@/components/schedule/BulkEditTimeDialog';
 import { DeleteSessionDialog } from '@/components/schedule/DeleteSessionDialog';
 import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
@@ -89,8 +90,9 @@ export function ScheduleTab() {
   const [batchOpenDay, setBatchOpenDay] = useState(false);
   const [batchOpenRange, setBatchOpenRange] = useState(false);
 
-  // Selected session for action bar
-  const [selectedSession, setSelectedSession] = useState<AdminEventSessionRow | null>(null);
+  // Selected sessions for action bar (multi-select)
+  const [selectedSessions, setSelectedSessions] = useState<AdminEventSessionRow[]>([]);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
 
   // Move session dialog state
@@ -196,9 +198,13 @@ export function ScheduleTab() {
   };
 
 
-  // Select session (for action bar)
+  // Select session (toggle multi-select for action bar)
   const handleSelectSession = (session: AdminEventSessionRow) => {
-    setSelectedSession((prev) => prev?.id === session.id ? null : session);
+    setSelectedSessions((prev) => {
+      const exists = prev.find((s) => s.id === session.id);
+      if (exists) return prev.filter((s) => s.id !== session.id);
+      return [...prev, session];
+    });
   };
 
   // Move session handler (from grid drag-and-drop)
@@ -245,14 +251,26 @@ export function ScheduleTab() {
 
   const deleteSession = (sessionId: string) => {
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    setSelectedSession(null);
+    setSelectedSessions([]);
     toast.success('Сеанс удалён');
   };
 
   const cancelSession = (sessionId: string, reason?: string) => {
     setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, isCancelled: true, canceledAt: new Date().toISOString(), cancelReason: reason } : s));
-    setSelectedSession(null);
+    setSelectedSessions([]);
     toast.success('Сеанс отменён');
+  };
+
+  const bulkUpdateTime = (sessionIds: string[], newTime: string) => {
+    setSessions((prev) => prev.map((s) => {
+      if (!sessionIds.includes(s.id)) return s;
+      const d = new Date(s.startsAt);
+      const [h, m] = newTime.split(':').map(Number);
+      d.setHours(h, m, 0, 0);
+      return { ...s, startsAt: d.toISOString() };
+    }));
+    setSelectedSessions([]);
+    toast.success(`Время изменено для ${sessionIds.length} сеансов`);
   };
 
 
@@ -356,7 +374,7 @@ export function ScheduleTab() {
                     setRangePreset(key);
                     setSelectionDay(new Set());
                     setSelectionRange(new Set());
-                    setSelectedSession(null);
+                    setSelectedSessions([]);
                     if (days > 0) {
                       setFrom(isoToday());
                       setTo(addDaysIso(isoToday(), days - 1));
@@ -396,30 +414,48 @@ export function ScheduleTab() {
 
         <CardContent>
           {/* Session action bar */}
-          {selectedSession && (
+          {selectedSessions.length > 0 && (
             <div className="mb-3">
               <SessionActionBar
-                session={selectedSession}
-                onDeselect={() => setSelectedSession(null)}
+                sessions={selectedSessions}
+                onDeselect={() => setSelectedSessions([])}
                 onAdd={() => {
                   setCreating(true);
-                  // Could pre-fill time from selected session
                 }}
                 onEdit={() => {
-                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
-                  if (hasSold) {
-                    toast.info('Перенос будет выполнен с автоматическим уведомлением покупателям');
+                  if (selectedSessions.length === 1) {
+                    const s = selectedSessions[0];
+                    const hasSold = (s.soldCount ?? 0) > 0;
+                    if (hasSold) {
+                      toast.info('Перенос будет выполнен с автоматическим уведомлением покупателям');
+                    }
+                    setEditing(s);
+                  } else {
+                    setBulkEditOpen(true);
                   }
-                  setEditing(selectedSession);
                 }}
-                onStop={() => setStopping(selectedSession)}
-                onDelete={() => {
-                  const hasSold = (selectedSession.soldCount ?? 0) > 0;
-                  if (hasSold) {
-                    toast.error('Удаление возможно только после осуществления возвратов через админа');
-                    return;
+                onStop={() => {
+                  if (selectedSessions.length === 1) setStopping(selectedSessions[0]);
+                  else {
+                    for (const s of selectedSessions) cancelSession(s.id);
                   }
-                  setDeleting(selectedSession);
+                }}
+                onDelete={() => {
+                  if (selectedSessions.length === 1) {
+                    const s = selectedSessions[0];
+                    if ((s.soldCount ?? 0) > 0) {
+                      toast.error('Удаление возможно только после осуществления возвратов через админа');
+                      return;
+                    }
+                    setDeleting(s);
+                  } else {
+                    const withSold = selectedSessions.filter((s) => (s.soldCount ?? 0) > 0);
+                    if (withSold.length) {
+                      toast.error(`${withSold.length} сеансов с продажами — удаление невозможно`);
+                      return;
+                    }
+                    for (const s of selectedSessions) deleteSession(s.id);
+                  }
                 }}
               />
             </div>
@@ -437,7 +473,7 @@ export function ScheduleTab() {
                     date={selectedDate}
                     sessions={rows}
                     selection={selectionDay}
-                    selectedSessionId={selectedSession?.id ?? null}
+                    selectedSessionIds={new Set(selectedSessions.map((s) => s.id))}
                     onToggleSlot={handleToggleSlotDay}
                     onSelectSlot={handleSelectSlotDay}
                     onDeselectSlot={handleDeselectSlotDay}
@@ -466,7 +502,7 @@ export function ScheduleTab() {
                     hoursEnd={23}
                     sessions={rows}
                     selection={selectionRange}
-                    selectedSessionId={selectedSession?.id ?? null}
+                    selectedSessionIds={new Set(selectedSessions.map((s) => s.id))}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
@@ -616,6 +652,13 @@ export function ScheduleTab() {
           onConfirm={handleBatchConfirmRange}
         />
       )}
+
+      <BulkEditTimeDialog
+        open={bulkEditOpen}
+        onOpenChange={(open) => { if (!open) setBulkEditOpen(false); }}
+        sessions={selectedSessions}
+        onSave={bulkUpdateTime}
+      />
 
       <EditSessionDialog
         open={!!editing}

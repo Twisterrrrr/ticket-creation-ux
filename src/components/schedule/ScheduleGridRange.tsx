@@ -13,7 +13,7 @@ type Props = {
   hoursEnd: number;
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridRangeSelection;
-  selectedSessionId: string | null;
+  selectedSessionIds: Set<string>;
   onToggleCell: (key: string) => void;
   onSelectCell: (key: string) => void;
   onDeselectCell: (key: string) => void;
@@ -51,7 +51,7 @@ function formatDateKeyRu(dateKey: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' });
 }
 
-export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionId, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
+export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionIds, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
   const dateKeys = useMemo(() => buildDateKeys(fromDateKey, days), [fromDateKey, days]);
   const hours = useMemo(() => buildHours(), []);
 
@@ -223,7 +223,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                                 <Plus className="h-2.5 w-2.5" />
                               </button>
                               {agg.sessions.map((s) => {
-                                const isActive = selectedSessionId === s.id;
+                                const isActive = selectedSessionIds.has(s.id);
                                 const sold = s.soldCount ?? 0;
                                 const cap = s.capacity ?? '∞';
                                 const hasSold = sold > 0;
