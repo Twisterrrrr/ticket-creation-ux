@@ -223,7 +223,7 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                                 <Plus className="h-2.5 w-2.5" />
                               </button>
                               {agg.sessions.map((s) => {
-                                const isActive = selectedSessionId === s.id;
+                                const isActive = selectedSessionIds.has(s.id);
                                 const sold = s.soldCount ?? 0;
                                 const cap = s.capacity ?? '∞';
                                 const hasSold = sold > 0;

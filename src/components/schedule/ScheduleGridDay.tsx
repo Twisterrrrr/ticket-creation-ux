@@ -163,7 +163,7 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds,
                             <Plus className="h-2.5 w-2.5" />
                           </button>
                           {slotSessions.map((s) => {
-                            const isActive = selectedSessionId === s.id;
+                            const isActive = selectedSessionIds.has(s.id);
                             const sold = s.soldCount ?? 0;
                             const cap = s.capacity ?? '∞';
                             return (
