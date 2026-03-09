@@ -99,7 +99,7 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
                   <p className="text-xs text-muted-foreground">{ticket.quota ? `${ticket.quota} шт.` : "Без ограничения"}</p>
                 </div>
                 <p className="font-bold text-foreground">
-                  {ticket.price ? `${ticket.price.toLocaleString()} ₸` : "Бесплатно"}
+                  {ticket.price ? `${ticket.price.toLocaleString()} ₽` : "Бесплатно"}
                 </p>
               </div>
             ))}
@@ -107,7 +107,7 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
 
           <div className="flex items-center justify-between pt-2">
             <p className="text-sm text-muted-foreground">
-              от <span className="text-lg font-bold text-foreground">{minPrice ? `${minPrice.toLocaleString()} ₸` : "Бесплатно"}</span>
+              от <span className="text-lg font-bold text-foreground">{minPrice ? `${minPrice.toLocaleString()} ₽` : "Бесплатно"}</span>
             </p>
             <div className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-semibold text-sm">
               Купить
