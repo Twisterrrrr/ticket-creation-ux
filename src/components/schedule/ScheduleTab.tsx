@@ -551,9 +551,10 @@ export function ScheduleTab() {
           )}
 
           {viewMode === 'table' && rows.length > 0 && (() => {
+            const tableRows = filterHasSales ? rows.filter((r) => (r.soldCount ?? 0) > 0) : rows;
             const selectedIds = new Set(selectedSessions.map((s) => s.id));
-            const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
-            const someSelected = rows.some((r) => selectedIds.has(r.id));
+            const allSelected = tableRows.length > 0 && tableRows.every((r) => selectedIds.has(r.id));
+            const someSelected = tableRows.some((r) => selectedIds.has(r.id));
 
             const toggleAll = () => {
               if (allSelected) {
