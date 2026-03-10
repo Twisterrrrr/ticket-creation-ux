@@ -282,9 +282,16 @@ export function TicketsTab({ form }: { form: UseFormReturn<EventFormData> }) {
               </div>
 
               {/* Price */}
-              <p className="text-right text-sm font-medium text-foreground tabular-nums">
-                {(ticket.price || 0).toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
-              </p>
+              <div className="text-right text-sm tabular-nums">
+                {ticket.oldPrice && ticket.oldPrice > ticket.price ? (
+                  <span className="text-muted-foreground line-through mr-1.5 text-xs">
+                    {ticket.oldPrice.toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
+                  </span>
+                ) : null}
+                <span className="font-medium text-foreground">
+                  {(ticket.price || 0).toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
 
               {/* Actions */}
               <div className="flex items-center gap-1 justify-end">

@@ -73,6 +73,7 @@ export type EventFormData = z.infer<typeof eventSchema>;
 export const defaultTicket: TicketCategory = {
   name: "",
   price: 0,
+  oldPrice: undefined,
   ticketType: "general",
   note: "",
   quota: undefined,

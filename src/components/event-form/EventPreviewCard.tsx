@@ -98,9 +98,16 @@ const EventPreviewCard = ({ data }: EventPreviewCardProps) => {
                   <p className="text-sm font-medium text-foreground">{ticket.name || `Категория ${i + 1}`}</p>
                   <p className="text-xs text-muted-foreground">{ticket.quota ? `${ticket.quota} шт.` : "Без ограничения"}</p>
                 </div>
-                <p className="font-bold text-foreground">
-                  {ticket.price ? `${ticket.price.toLocaleString()} ₽` : "Бесплатно"}
-                </p>
+                <div className="text-right">
+                  {ticket.oldPrice && ticket.oldPrice > ticket.price ? (
+                    <span className="text-xs text-muted-foreground line-through mr-1.5">
+                      {ticket.oldPrice.toLocaleString()} ₽
+                    </span>
+                  ) : null}
+                  <span className="font-bold text-foreground">
+                    {ticket.price ? `${ticket.price.toLocaleString()} ₽` : "Бесплатно"}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
