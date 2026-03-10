@@ -20,6 +20,7 @@ export const weekDays = [
 const ticketCategorySchema = z.object({
   name: z.string().trim().min(2, "Минимум 2 символа").max(80, "Максимум 80 символов"),
   price: z.coerce.number().min(0, "Цена не может быть отрицательной"),
+  oldPrice: z.coerce.number().min(0).optional(),
   ticketType: z.string().default("general"),
   note: z.string().max(200, "Максимум 200 символов").optional().or(z.literal("")),
   quota: z.coerce.number().int().min(0).optional(),
