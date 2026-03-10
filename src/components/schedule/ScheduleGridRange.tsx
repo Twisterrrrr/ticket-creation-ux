@@ -252,10 +252,20 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
                               })}
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <span className="text-[11px]">
-                              {agg.sessions.map((s) => `${formatTimeRu(s.startsAt)} — ${s.soldCount ?? 0}/${s.capacity ?? '∞'}`).join(', ')}
-                            </span>
+                          <TooltipContent side="top" className="text-xs">
+                            {agg.sessions.map((s) => {
+                              const sold = s.soldCount ?? 0;
+                              const cap = s.capacity ?? '∞';
+                              const remaining = typeof s.capacity === 'number' ? s.capacity - sold : '∞';
+                              return (
+                                <div key={s.id} className="mb-1 last:mb-0">
+                                  <div className="font-medium">{formatTimeRu(s.startsAt)}</div>
+                                  <div>Квота: {cap}</div>
+                                  <div>Продано: {sold}</div>
+                                  <div>Осталось: {remaining}</div>
+                                </div>
+                              );
+                            })}
                           </TooltipContent>
                         </Tooltip>
                       ) : (
