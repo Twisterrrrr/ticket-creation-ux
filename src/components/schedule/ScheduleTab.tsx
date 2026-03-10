@@ -414,6 +414,18 @@ export function ScheduleTab() {
               />
               <span>Показывать отменённые{cancelledCount > 0 ? ` (${cancelledCount})` : ''}</span>
             </label>
+
+            {viewMode === 'table' && (
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border border-input bg-background"
+                  checked={filterHasSales}
+                  onChange={(e) => setFilterHasSales(e.target.checked)}
+                />
+                <span>Есть продажи</span>
+              </label>
+            )}
           </div>
         </CardHeader>
 
