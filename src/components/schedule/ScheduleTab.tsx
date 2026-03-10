@@ -462,9 +462,12 @@ export function ScheduleTab() {
                   }
                 }}
                 onViewSales={() => {
-                  // Show sales for first session with sales (or single selected)
                   const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
                   if (withSales) setSalesSession(withSales);
+                }}
+                onViewRegistry={() => {
+                  const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
+                  if (withSales) setRegistrySession(withSales);
                 }}
               />
             </div>
