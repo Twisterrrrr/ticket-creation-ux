@@ -86,6 +86,7 @@ export function ScheduleTab() {
   const [stopping, setStopping] = useState<AdminEventSessionRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [includeCancelled, setIncludeCancelled] = useState(false);
+  const [filterHasSales, setFilterHasSales] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [selectionDay, setSelectionDay] = useState<ScheduleGridSelection>(new Set());
   const [selectionRange, setSelectionRange] = useState<ScheduleGridRangeSelection>(new Set());
@@ -413,6 +414,18 @@ export function ScheduleTab() {
               />
               <span>Показывать отменённые{cancelledCount > 0 ? ` (${cancelledCount})` : ''}</span>
             </label>
+
+            {viewMode === 'table' && (
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border border-input bg-background"
+                  checked={filterHasSales}
+                  onChange={(e) => setFilterHasSales(e.target.checked)}
+                />
+                <span>Есть продажи</span>
+              </label>
+            )}
           </div>
         </CardHeader>
 
@@ -538,15 +551,16 @@ export function ScheduleTab() {
           )}
 
           {viewMode === 'table' && rows.length > 0 && (() => {
+            const tableRows = filterHasSales ? rows.filter((r) => (r.soldCount ?? 0) > 0) : rows;
             const selectedIds = new Set(selectedSessions.map((s) => s.id));
-            const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
-            const someSelected = rows.some((r) => selectedIds.has(r.id));
+            const allSelected = tableRows.length > 0 && tableRows.every((r) => selectedIds.has(r.id));
+            const someSelected = tableRows.some((r) => selectedIds.has(r.id));
 
             const toggleAll = () => {
               if (allSelected) {
                 setSelectedSessions([]);
               } else {
-                setSelectedSessions([...rows]);
+                setSelectedSessions([...tableRows]);
               }
             };
 
@@ -581,7 +595,7 @@ export function ScheduleTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => {
+                  {tableRows.map((r) => {
                     const date = formatDateRu(r.startsAt);
                     const time = formatTimeRu(r.startsAt);
                     const cap = r.capacity ?? '—';
