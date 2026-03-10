@@ -758,6 +758,12 @@ export function ScheduleTab() {
         session={salesSession}
       />
 
+      <SessionRegistryDialog
+        open={!!registrySession}
+        onOpenChange={(open) => { if (!open) setRegistrySession(null); }}
+        session={registrySession}
+      />
+
       <DragLayer drag={drag} />
     </TooltipProvider>
   );
