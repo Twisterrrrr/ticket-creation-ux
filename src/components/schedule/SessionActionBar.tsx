@@ -1,4 +1,4 @@
-import { Pencil, Plus, ShoppingCart, Square, Trash2, X } from 'lucide-react';
+import { ClipboardList, Pencil, Plus, ShoppingCart, Square, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 
@@ -10,6 +10,7 @@ type Props = {
   onStop: () => void;
   onDelete: () => void;
   onViewSales?: () => void;
+  onViewRegistry?: () => void;
 };
 
 export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales }: Props) {
