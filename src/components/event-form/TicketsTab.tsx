@@ -53,14 +53,18 @@ function TicketFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           {/* Name + Price */}
-          <div className="grid sm:grid-cols-[1fr_140px] gap-3">
+          <div className="grid sm:grid-cols-[1fr_120px_120px] gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium">Название</label>
               <Input placeholder="Укажите название" value={data.name} onChange={(e) => update("name", e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium">Цена</label>
-              <Input type="number" min={0} placeholder="Укажите цену" value={data.price || ""} onChange={(e) => update("price", Number(e.target.value))} />
+              <Input type="number" min={0} placeholder="0" value={data.price || ""} onChange={(e) => update("price", Number(e.target.value))} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Старая цена</label>
+              <Input type="number" min={0} placeholder="—" value={data.oldPrice || ""} onChange={(e) => update("oldPrice", e.target.value ? Number(e.target.value) : undefined)} />
             </div>
           </div>
 
@@ -278,9 +282,16 @@ export function TicketsTab({ form }: { form: UseFormReturn<EventFormData> }) {
               </div>
 
               {/* Price */}
-              <p className="text-right text-sm font-medium text-foreground tabular-nums">
-                {(ticket.price || 0).toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
-              </p>
+              <div className="text-right text-sm tabular-nums">
+                {ticket.oldPrice && ticket.oldPrice > ticket.price ? (
+                  <span className="text-muted-foreground line-through mr-1.5 text-xs">
+                    {ticket.oldPrice.toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
+                  </span>
+                ) : null}
+                <span className="font-medium text-foreground">
+                  {(ticket.price || 0).toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
 
               {/* Actions */}
               <div className="flex items-center gap-1 justify-end">
