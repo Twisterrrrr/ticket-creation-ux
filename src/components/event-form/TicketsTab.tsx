@@ -53,14 +53,18 @@ function TicketFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           {/* Name + Price */}
-          <div className="grid sm:grid-cols-[1fr_140px] gap-3">
+          <div className="grid sm:grid-cols-[1fr_120px_120px] gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium">Название</label>
               <Input placeholder="Укажите название" value={data.name} onChange={(e) => update("name", e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium">Цена</label>
-              <Input type="number" min={0} placeholder="Укажите цену" value={data.price || ""} onChange={(e) => update("price", Number(e.target.value))} />
+              <Input type="number" min={0} placeholder="0" value={data.price || ""} onChange={(e) => update("price", Number(e.target.value))} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Старая цена</label>
+              <Input type="number" min={0} placeholder="—" value={data.oldPrice || ""} onChange={(e) => update("oldPrice", e.target.value ? Number(e.target.value) : undefined)} />
             </div>
           </div>
 
