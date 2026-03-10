@@ -13,7 +13,7 @@ type Props = {
   onViewRegistry?: () => void;
 };
 
-export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales }: Props) {
+export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales, onViewRegistry }: Props) {
   const count = sessions.length;
   const hasSold = sessions.some((s) => (s.soldCount ?? 0) > 0);
   const hasLocked = sessions.some((s) => s.locked);
