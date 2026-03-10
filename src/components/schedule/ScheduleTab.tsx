@@ -560,7 +560,7 @@ export function ScheduleTab() {
               if (allSelected) {
                 setSelectedSessions([]);
               } else {
-                setSelectedSessions([...rows]);
+                setSelectedSessions([...tableRows]);
               }
             };
 
