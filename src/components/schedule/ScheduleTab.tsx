@@ -595,7 +595,7 @@ export function ScheduleTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => {
+                  {tableRows.map((r) => {
                     const date = formatDateRu(r.startsAt);
                     const time = formatTimeRu(r.startsAt);
                     const cap = r.capacity ?? '—';
