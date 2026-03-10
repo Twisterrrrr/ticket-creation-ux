@@ -78,6 +78,16 @@ export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, 
           Продажи{count === 1 ? '' : ` (${sessions.filter(s => (s.soldCount ?? 0) > 0).length})`}
         </Button>
       )}
+      {hasSold && onViewRegistry && (
+        <Button
+          size="sm"
+          className="gap-1.5 bg-emerald-700 text-white hover:bg-emerald-800"
+          onClick={onViewRegistry}
+        >
+          <ClipboardList className="h-3.5 w-3.5" />
+          Реестр
+        </Button>
+      )}
       {hasSold && (
         <span className="ml-2 text-[11px] text-destructive">
           Есть продажи — перенос с уведомлением, удаление после возвратов
