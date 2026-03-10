@@ -86,6 +86,7 @@ export function ScheduleTab() {
   const [stopping, setStopping] = useState<AdminEventSessionRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [includeCancelled, setIncludeCancelled] = useState(false);
+  const [filterHasSales, setFilterHasSales] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [selectionDay, setSelectionDay] = useState<ScheduleGridSelection>(new Set());
   const [selectionRange, setSelectionRange] = useState<ScheduleGridRangeSelection>(new Set());
