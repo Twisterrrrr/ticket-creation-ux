@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Plus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, isoToDateInput } from '@/lib/sessions';
 
