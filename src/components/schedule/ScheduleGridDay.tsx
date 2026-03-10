@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Plus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 import { formatTimeRu, isoToDateInput } from '@/lib/sessions';
 
@@ -166,24 +167,33 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds,
                             const isActive = selectedSessionIds.has(s.id);
                             const sold = s.soldCount ?? 0;
                             const cap = s.capacity ?? '∞';
+                            const remaining = typeof s.capacity === 'number' ? s.capacity - sold : '∞';
                             return (
-                              <button
-                                key={s.id}
-                                type="button"
-                                onClick={() => onSelectSession(s)}
-                                className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
-                                  isActive
-                                    ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
-                                    : s.isCancelled
-                                      ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                      : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
-                                }`}
-                              >
-                                <span className="flex flex-col items-center leading-snug whitespace-nowrap">
-                                  <span>{formatTimeRu(s.startsAt)}</span>
-                                  <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
-                                </span>
-                              </button>
+                              <Tooltip key={s.id}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    onClick={() => onSelectSession(s)}
+                                    className={`flex items-center justify-center rounded border px-1.5 py-1 text-[11px] font-medium transition-colors ${
+                                      isActive
+                                        ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
+                                        : s.isCancelled
+                                          ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
+                                          : 'border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80'
+                                    }`}
+                                  >
+                                    <span className="flex flex-col items-center leading-snug whitespace-nowrap">
+                                      <span>{formatTimeRu(s.startsAt)}</span>
+                                      <span className="text-[10px] font-normal opacity-60">{sold} / {cap}</span>
+                                    </span>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  <div>Квота: {typeof s.capacity === 'number' ? s.capacity : 'Общая квота'}</div>
+                                  <div>Продано: {sold}</div>
+                                  <div>Осталось: {remaining}</div>
+                                </TooltipContent>
+                              </Tooltip>
                             );
                           })}
                         </div>

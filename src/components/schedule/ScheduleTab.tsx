@@ -22,6 +22,7 @@ import { CancelSessionDialog } from '@/components/schedule/CancelSessionDialog';
 import { MoveSessionDialog } from '@/components/schedule/MoveSessionDialog';
 import { SessionActionBar } from '@/components/schedule/SessionActionBar';
 import { SessionSalesDialog } from '@/components/schedule/SessionSalesDialog';
+import { SessionRegistryDialog } from '@/components/schedule/SessionRegistryDialog';
 import { DragLayer } from '@/components/schedule/DragLayer';
 import { useSessionDrag } from '@/components/schedule/useSessionDrag';
 
@@ -95,6 +96,7 @@ export function ScheduleTab() {
   const [selectedSessions, setSelectedSessions] = useState<AdminEventSessionRow[]>([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [salesSession, setSalesSession] = useState<AdminEventSessionRow | null>(null);
+  const [registrySession, setRegistrySession] = useState<AdminEventSessionRow | null>(null);
 
 
   // Move session dialog state
@@ -460,9 +462,12 @@ export function ScheduleTab() {
                   }
                 }}
                 onViewSales={() => {
-                  // Show sales for first session with sales (or single selected)
                   const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
                   if (withSales) setSalesSession(withSales);
+                }}
+                onViewRegistry={() => {
+                  const withSales = selectedSessions.find((s) => (s.soldCount ?? 0) > 0);
+                  if (withSales) setRegistrySession(withSales);
                 }}
               />
             </div>
@@ -751,6 +756,12 @@ export function ScheduleTab() {
         open={!!salesSession}
         onOpenChange={(open) => { if (!open) setSalesSession(null); }}
         session={salesSession}
+      />
+
+      <SessionRegistryDialog
+        open={!!registrySession}
+        onOpenChange={(open) => { if (!open) setRegistrySession(null); }}
+        session={registrySession}
       />
 
       <DragLayer drag={drag} />

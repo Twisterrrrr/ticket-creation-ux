@@ -1,4 +1,4 @@
-import { Pencil, Plus, ShoppingCart, Square, Trash2, X } from 'lucide-react';
+import { ClipboardList, Pencil, Plus, ShoppingCart, Square, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AdminEventSessionRow } from '@/components/schedule/types';
 
@@ -10,9 +10,10 @@ type Props = {
   onStop: () => void;
   onDelete: () => void;
   onViewSales?: () => void;
+  onViewRegistry?: () => void;
 };
 
-export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales }: Props) {
+export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, onDelete, onViewSales, onViewRegistry }: Props) {
   const count = sessions.length;
   const hasSold = sessions.some((s) => (s.soldCount ?? 0) > 0);
   const hasLocked = sessions.some((s) => s.locked);
@@ -75,6 +76,16 @@ export function SessionActionBar({ sessions, onDeselect, onAdd, onEdit, onStop, 
         >
           <ShoppingCart className="h-3.5 w-3.5" />
           Продажи{count === 1 ? '' : ` (${sessions.filter(s => (s.soldCount ?? 0) > 0).length})`}
+        </Button>
+      )}
+      {hasSold && onViewRegistry && (
+        <Button
+          size="sm"
+          className="gap-1.5 bg-emerald-700 text-white hover:bg-emerald-800"
+          onClick={onViewRegistry}
+        >
+          <ClipboardList className="h-3.5 w-3.5" />
+          Реестр
         </Button>
       )}
       {hasSold && (
