@@ -14,6 +14,7 @@ type Props = {
   sessions: AdminEventSessionRow[];
   selection: ScheduleGridRangeSelection;
   selectedSessionIds: Set<string>;
+  onSetSelection: (keys: Set<string>) => void;
   onToggleCell: (key: string) => void;
   onSelectCell: (key: string) => void;
   onDeselectCell: (key: string) => void;
@@ -51,12 +52,22 @@ function formatDateKeyRu(dateKey: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' });
 }
 
-export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionIds, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
+function isWeekend(dateKey: string): boolean {
+  const d = new Date(`${dateKey}T00:00:00`);
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
+
+export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, sessions, selection, selectedSessionIds, onSetSelection, onToggleCell, onSelectCell, onDeselectCell, onSelectSession, onMoveSession }: Props) {
   const dateKeys = useMemo(() => buildDateKeys(fromDateKey, days), [fromDateKey, days]);
   const hours = useMemo(() => buildHours(), []);
 
+  // Rectangle selection state
   const [isDragging, setIsDragging] = useState(false);
   const dragModeRef = useRef<'select' | 'deselect' | null>(null);
+  const dragStartRef = useRef<{ rowIdx: number; colIdx: number } | null>(null);
+  const [dragRect, setDragRect] = useState<{ r1: number; c1: number; r2: number; c2: number } | null>(null);
+  const preSelectionRef = useRef<Set<string>>(new Set());
 
   const [dragSession, setDragSession] = useState<{ sessionId: string; originKey: string } | null>(null);
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
@@ -87,33 +98,72 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
     return map;
   }, [sessions]);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent, cellKey: string) => {
+  const getCellKey = (rowIdx: number, colIdx: number) => `${dateKeys[rowIdx]}|${hours[colIdx]}`;
+
+  const getRectKeys = (r1: number, c1: number, r2: number, c2: number): Set<string> => {
+    const keys = new Set<string>();
+    const minR = Math.min(r1, r2);
+    const maxR = Math.max(r1, r2);
+    const minC = Math.min(c1, c2);
+    const maxC = Math.max(c1, c2);
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        const key = getCellKey(r, c);
+        // Only add empty cells (no existing sessions)
+        if (!aggByKey.has(key)) {
+          keys.add(key);
+        }
+      }
+    }
+    return keys;
+  };
+
+  const handlePointerDown = useCallback((e: React.PointerEvent, rowIdx: number, colIdx: number) => {
+    const cellKey = getCellKey(rowIdx, colIdx);
     if (e.button === 2) {
       e.preventDefault();
       dragModeRef.current = 'deselect';
       setIsDragging(true);
-      onDeselectCell(cellKey);
+      dragStartRef.current = { rowIdx, colIdx };
+      preSelectionRef.current = new Set(selection);
+      setDragRect({ r1: rowIdx, c1: colIdx, r2: rowIdx, c2: colIdx });
+      // Immediately deselect the rect
+      const next = new Set(selection);
+      next.delete(cellKey);
+      onSetSelection(next);
       return;
     }
     if (e.button === 0) {
       dragModeRef.current = 'select';
       setIsDragging(true);
-      onSelectCell(cellKey);
+      dragStartRef.current = { rowIdx, colIdx };
+      preSelectionRef.current = new Set(selection);
+      setDragRect({ r1: rowIdx, c1: colIdx, r2: rowIdx, c2: colIdx });
+      const next = new Set(selection);
+      next.add(cellKey);
+      onSetSelection(next);
     }
-  }, [onSelectCell, onDeselectCell]);
+  }, [selection, onSetSelection, dateKeys, hours, aggByKey]);
 
-  const handlePointerOver = useCallback((cellKey: string) => {
-    if (!isDragging || !dragModeRef.current) return;
+  const handlePointerOver = useCallback((rowIdx: number, colIdx: number) => {
+    if (!isDragging || !dragModeRef.current || !dragStartRef.current) return;
+    const { rowIdx: r1, colIdx: c1 } = dragStartRef.current;
+    setDragRect({ r1, c1, r2: rowIdx, c2: colIdx });
+    const rectKeys = getRectKeys(r1, c1, rowIdx, colIdx);
+    const base = new Set(preSelectionRef.current);
     if (dragModeRef.current === 'select') {
-      onSelectCell(cellKey);
+      for (const k of rectKeys) base.add(k);
     } else {
-      onDeselectCell(cellKey);
+      for (const k of rectKeys) base.delete(k);
     }
-  }, [isDragging, onSelectCell, onDeselectCell]);
+    onSetSelection(base);
+  }, [isDragging, dateKeys, hours, aggByKey, onSetSelection]);
 
   const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     dragModeRef.current = null;
+    dragStartRef.current = null;
+    setDragRect(null);
   }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -150,6 +200,15 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
     setDragOverCell(null);
   }, []);
 
+  const isInDragRect = (rowIdx: number, colIdx: number) => {
+    if (!dragRect) return false;
+    const minR = Math.min(dragRect.r1, dragRect.r2);
+    const maxR = Math.max(dragRect.r1, dragRect.r2);
+    const minC = Math.min(dragRect.c1, dragRect.c2);
+    const maxC = Math.max(dragRect.c1, dragRect.c2);
+    return rowIdx >= minR && rowIdx <= maxR && colIdx >= minC && colIdx <= maxC;
+  };
+
   return (
     <div
       className="mt-4 rounded-lg border border-border select-none"
@@ -178,8 +237,8 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
         <table className="border-t border-border text-[11px] w-full table-fixed">
           <thead>
             <tr>
-              <th className="w-20 border-r border-border bg-muted/50 px-1 py-1 text-left text-[10px] font-medium text-muted-foreground">
-                Дата
+              <th className="w-24 border-r border-border bg-muted/50 px-1 py-1 text-left text-[10px] font-medium text-muted-foreground sticky left-0 z-10">
+                Дата / Время
               </th>
               {hours.map((h) => (
                 <th key={h} className="border-r border-border bg-muted/50 px-0 py-1 text-center text-[10px] font-medium text-muted-foreground">
@@ -189,107 +248,112 @@ export function ScheduleGridRange({ fromDateKey, days, hoursStart, hoursEnd, ses
             </tr>
           </thead>
           <tbody>
-            {dateKeys.map((dateKey) => (
-              <tr key={dateKey}>
-                <td className="border-r border-t border-border bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground whitespace-nowrap">
-                  {formatDateKeyRu(dateKey)}
-                </td>
-                {hours.map((h) => {
-                  const cellKey = `${dateKey}|${h}`;
-                  const agg = aggByKey.get(cellKey);
-                  const selected = selection.has(cellKey);
-                  const hasSessions = !!agg;
-                  const isDropTarget = dragOverCell === cellKey;
-                  const sessionCount = agg?.sessions.length ?? 0;
+            {dateKeys.map((dateKey, rowIdx) => {
+              const weekend = isWeekend(dateKey);
+              return (
+                <tr key={dateKey}>
+                  <td className={`border-r border-t border-border px-2 py-1 text-[10px] whitespace-nowrap sticky left-0 z-10 ${weekend ? 'bg-green-50 text-green-700 font-medium' : 'bg-muted/50 text-muted-foreground'}`}>
+                    {formatDateKeyRu(dateKey)}
+                  </td>
+                  {hours.map((h, colIdx) => {
+                    const cellKey = `${dateKey}|${h}`;
+                    const agg = aggByKey.get(cellKey);
+                    const selected = selection.has(cellKey);
+                    const hasSessions = !!agg;
+                    const isDropTarget = dragOverCell === cellKey;
+                    const inRect = isInDragRect(rowIdx, colIdx);
 
-                  return (
-                    <td
-                      key={h}
-                      className={`relative border-t border-r border-border px-0.5 py-0.5 align-top min-w-[44px] ${isDropTarget ? 'bg-primary/20' : ''}`}
-                      onDragOver={(e) => handleCellDragOver(e, cellKey)}
-                      onDragLeave={handleCellDragLeave}
-                      onDrop={(e) => handleCellDrop(e, cellKey)}
-                    >
-                      {hasSessions ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="relative z-10 flex flex-col gap-0.5">
-                              <button
-                                type="button"
-                                onClick={() => onToggleCell(cellKey)}
-                                className="absolute top-0 right-0 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] leading-none hover:bg-primary/80 transition-colors"
-                                title="Добавить сеанс"
-                              >
-                                <Plus className="h-2.5 w-2.5" />
-                              </button>
+                    return (
+                      <td
+                        key={h}
+                        className={`relative border-t border-r border-border px-0.5 py-0.5 align-top min-w-[44px] ${isDropTarget ? 'bg-primary/20' : ''}`}
+                        onDragOver={(e) => handleCellDragOver(e, cellKey)}
+                        onDragLeave={handleCellDragLeave}
+                        onDrop={(e) => handleCellDrop(e, cellKey)}
+                      >
+                        {hasSessions ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="relative z-10 flex flex-col gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => onToggleCell(cellKey)}
+                                  className="absolute top-0 right-0 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] leading-none hover:bg-primary/80 transition-colors"
+                                  title="Добавить сеанс"
+                                >
+                                  <Plus className="h-2.5 w-2.5" />
+                                </button>
+                                {agg.sessions.map((s) => {
+                                  const isActive = selectedSessionIds.has(s.id);
+                                  const sold = s.soldCount ?? 0;
+                                  const cap = s.capacity ?? '∞';
+                                  const hasSold = sold > 0;
+                                  return (
+                                    <button
+                                      key={s.id}
+                                      type="button"
+                                      draggable={!hasSold}
+                                      onDragStart={(e) => handleSessionDragStart(e, s.id, cellKey, hasSold)}
+                                      onDragEnd={handleDragEnd}
+                                      onClick={() => onSelectSession(s)}
+                                      className={`flex items-center justify-center rounded border px-0.5 py-0.5 text-[9px] transition-colors ${
+                                        isActive
+                                          ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
+                                          : s.isCancelled
+                                            ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
+                                            : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
+                                      } ${!hasSold ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                    >
+                                      <span className="flex flex-col items-center leading-tight">
+                                        <span>{formatTimeRu(s.startsAt)}</span>
+                                        <span className="text-[8px] opacity-70">{sold} / {cap}</span>
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
                               {agg.sessions.map((s) => {
-                                const isActive = selectedSessionIds.has(s.id);
                                 const sold = s.soldCount ?? 0;
                                 const cap = s.capacity ?? '∞';
-                                const hasSold = sold > 0;
+                                const remaining = typeof s.capacity === 'number' ? s.capacity - sold : '∞';
                                 return (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    draggable={!hasSold}
-                                    onDragStart={(e) => handleSessionDragStart(e, s.id, cellKey, hasSold)}
-                                    onDragEnd={handleDragEnd}
-                                    onClick={() => onSelectSession(s)}
-                                    className={`flex items-center justify-center rounded border px-0.5 py-0.5 text-[9px] transition-colors ${
-                                      isActive
-                                        ? 'border-primary bg-primary/20 text-primary ring-1 ring-primary'
-                                        : s.isCancelled
-                                          ? 'border-destructive/40 bg-destructive/5 text-destructive line-through'
-                                          : 'border-muted-foreground/40 bg-muted text-foreground hover:bg-muted/80'
-                                    } ${!hasSold ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                                  >
-                                    <span className="flex flex-col items-center leading-tight">
-                                      <span>{formatTimeRu(s.startsAt)}</span>
-                                      <span className="text-[8px] opacity-70">{sold} / {cap}</span>
-                                    </span>
-                                  </button>
+                                  <div key={s.id} className="mb-1 last:mb-0">
+                                    <div className="font-medium">{formatTimeRu(s.startsAt)}</div>
+                                    <div>Квота: {typeof s.capacity === 'number' ? s.capacity : 'Общая квота'}</div>
+                                    <div>Продано: {sold}</div>
+                                    <div>Осталось: {remaining}</div>
+                                  </div>
                                 );
                               })}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            {agg.sessions.map((s) => {
-                              const sold = s.soldCount ?? 0;
-                              const cap = s.capacity ?? '∞';
-                              const remaining = typeof s.capacity === 'number' ? s.capacity - sold : '∞';
-                              return (
-                                <div key={s.id} className="mb-1 last:mb-0">
-                                  <div className="font-medium">{formatTimeRu(s.startsAt)}</div>
-                                  <div>Квота: {cap}</div>
-                                  <div>Продано: {sold}</div>
-                                  <div>Осталось: {remaining}</div>
-                                </div>
-                              );
-                            })}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <button
-                          type="button"
-                          className={`flex h-full min-h-[32px] w-full items-center justify-center rounded border text-[10px] transition-colors ${
-                            selected
-                              ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
-                              : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
-                          }`}
-                          onPointerDown={(e) => handlePointerDown(e, cellKey)}
-                          onPointerOver={() => handlePointerOver(cellKey)}
-                          onDragOver={(e) => handleCellDragOver(e, cellKey)}
-                          onDragLeave={handleCellDragLeave}
-                          onDrop={(e) => handleCellDrop(e, cellKey)}
-                        >
-                          {selected ? <span className="font-medium">+</span> : null}
-                        </button>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <button
+                            type="button"
+                            className={`flex h-full min-h-[32px] w-full items-center justify-center rounded border text-[10px] transition-colors ${
+                              selected
+                                ? 'border-primary bg-primary/10 text-primary hover:bg-primary/20'
+                                : inRect
+                                  ? 'border-primary/50 bg-primary/5'
+                                  : 'border-dashed border-border text-muted-foreground/30 hover:border-primary/50 hover:text-primary'
+                            }`}
+                            onPointerDown={(e) => handlePointerDown(e, rowIdx, colIdx)}
+                            onPointerOver={() => handlePointerOver(rowIdx, colIdx)}
+                            onDragOver={(e) => handleCellDragOver(e, cellKey)}
+                            onDragLeave={handleCellDragLeave}
+                            onDrop={(e) => handleCellDrop(e, cellKey)}
+                          >
+                            {selected ? <span className="font-medium">+</span> : null}
+                          </button>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

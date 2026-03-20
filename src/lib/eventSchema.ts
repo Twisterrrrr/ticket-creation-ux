@@ -34,6 +34,14 @@ const ticketCategorySchema = z.object({
 
 export type TicketCategory = z.infer<typeof ticketCategorySchema>;
 
+const quotaGroupSchema = z.object({
+  name: z.string().trim().min(1, "Укажите название").max(80, "Максимум 80 символов"),
+  totalSeats: z.coerce.number().int().min(0, "Не может быть отрицательным"),
+  categoryLimits: z.record(z.string(), z.coerce.number().int().min(0).optional()).default({}),
+});
+
+export type QuotaGroup = z.infer<typeof quotaGroupSchema>;
+
 const extraSectionSchema = z.object({
   title: z.string().trim().min(1, "Укажите заголовок").max(120, "Максимум 120 символов"),
   content: z.string().trim().min(1, "Укажите содержание").max(2000, "Максимум 2000 символов"),
@@ -66,6 +74,7 @@ export const eventSchema = z.object({
   // Tickets
   totalQuota: z.coerce.number().int().min(1, "Минимум 1 место").optional(),
   tickets: z.array(ticketCategorySchema).min(1, "Добавьте хотя бы одну категорию билетов"),
+  quotaGroups: z.array(quotaGroupSchema).default([]),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
@@ -102,6 +111,7 @@ export const defaultEventValues: EventFormData = {
   ageRestriction: "",
   totalQuota: undefined,
   tickets: [{ ...defaultTicket }],
+  quotaGroups: [],
 };
 
 export const categories = [

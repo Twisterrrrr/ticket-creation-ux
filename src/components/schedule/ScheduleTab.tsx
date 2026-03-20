@@ -201,6 +201,9 @@ export function ScheduleTab() {
       return next;
     });
   };
+  const handleSetSelectionRange = (keys: Set<string>) => {
+    setSelectionRange(keys);
+  };
 
 
   // Select session (toggle multi-select for action bar)
@@ -528,6 +531,7 @@ export function ScheduleTab() {
                     sessions={rows}
                     selection={selectionRange}
                     selectedSessionIds={new Set(selectedSessions.map((s) => s.id))}
+                    onSetSelection={handleSetSelectionRange}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
