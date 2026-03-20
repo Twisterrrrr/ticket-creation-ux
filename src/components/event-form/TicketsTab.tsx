@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import FormSection from "./FormSection";
+import { QuotaGroupsSection } from "./QuotaGroupsSection";
 import { Ticket, Plus, Trash2, Minus, Pencil, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
