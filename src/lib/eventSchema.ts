@@ -111,6 +111,7 @@ export const defaultEventValues: EventFormData = {
   ageRestriction: "",
   totalQuota: undefined,
   tickets: [{ ...defaultTicket }],
+  quotaGroups: [],
 };
 
 export const categories = [
