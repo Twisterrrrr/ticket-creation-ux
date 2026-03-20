@@ -314,12 +314,12 @@ export function TicketsTab({ form }: { form: UseFormReturn<EventFormData> }) {
         )}
       </div>
 
-      {/* Deleted tickets */}
+      {/* Deleted tickets (drafts) */}
       {deletedTickets.length > 0 && (
         <Collapsible open={deletedOpen} onOpenChange={setDeletedOpen}>
           <CollapsibleTrigger asChild>
             <button type="button" className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-700 transition-colors">
-              Удалённые билеты
+              Черновики удалённых билетов
               <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">{deletedTickets.length}</span>
               <ChevronDown className={cn("w-4 h-4 transition-transform", deletedOpen && "rotate-180")} />
             </button>
@@ -339,7 +339,7 @@ export function TicketsTab({ form }: { form: UseFormReturn<EventFormData> }) {
                 <p className="text-right text-sm text-muted-foreground tabular-nums">
                   {(ticket.price || 0).toLocaleString("ru-RU", { minimumFractionDigits: 2 })}
                 </p>
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => handleRestore(i)}>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => handleRestore(i)} title="Восстановить">
                   <RotateCcw className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -347,6 +347,11 @@ export function TicketsTab({ form }: { form: UseFormReturn<EventFormData> }) {
           </CollapsibleContent>
         </Collapsible>
       )}
+
+      {/* Quota Groups */}
+      <div className="pt-4 border-t border-border">
+        <QuotaGroupsSection form={form} />
+      </div>
 
       {/* Create/Edit Dialog */}
       <TicketFormDialog
