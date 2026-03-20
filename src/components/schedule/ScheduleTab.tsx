@@ -201,6 +201,9 @@ export function ScheduleTab() {
       return next;
     });
   };
+  const handleSetSelectionRange = (keys: Set<string>) => {
+    setSelectionRange(keys);
+  };
 
 
   // Select session (toggle multi-select for action bar)
