@@ -74,6 +74,7 @@ export const eventSchema = z.object({
   // Tickets
   totalQuota: z.coerce.number().int().min(1, "Минимум 1 место").optional(),
   tickets: z.array(ticketCategorySchema).min(1, "Добавьте хотя бы одну категорию билетов"),
+  quotaGroups: z.array(quotaGroupSchema).default([]),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
