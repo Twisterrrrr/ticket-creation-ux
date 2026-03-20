@@ -531,6 +531,7 @@ export function ScheduleTab() {
                     sessions={rows}
                     selection={selectionRange}
                     selectedSessionIds={new Set(selectedSessions.map((s) => s.id))}
+                    onSetSelection={handleSetSelectionRange}
                     onToggleCell={handleToggleCellRange}
                     onSelectCell={handleSelectCellRange}
                     onDeselectCell={handleDeselectCellRange}
