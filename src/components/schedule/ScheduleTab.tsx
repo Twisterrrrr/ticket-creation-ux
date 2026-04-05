@@ -359,11 +359,23 @@ export function ScheduleTab() {
                 </button>
               </div>
 
-              {!showBatchBarDay && !showBatchBarRange && (
+              {!showBatchBarDay && !showBatchBarRange ? (
                 <Button variant="default" size="sm" className="gap-2" onClick={() => setCreating(true)}>
                   <Plus className="h-4 w-4" /> Добавить сеанс
                 </Button>
-              )}
+              ) : viewMode === 'grid' && gridDetailMode === 'day' && showBatchBarDay ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>
+                  <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); }}>Очистить выбор</Button>
+                  <Button variant="default" size="sm" onClick={() => setBatchOpenDay(true)}>Добавить</Button>
+                </div>
+              ) : viewMode === 'grid' && gridDetailMode !== 'day' && showBatchBarRange ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>
+                  <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); }}>Очистить выбор</Button>
+                  <Button variant="default" size="sm" onClick={() => setBatchOpenRange(true)}>Добавить</Button>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -499,17 +511,6 @@ export function ScheduleTab() {
             <>
               {gridDetailMode === 'day' && (
                 <>
-                  {showBatchBarDay && (
-                    <div className="mb-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <div>
-                        <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); }}>Очистить выбор</Button>
-                        <Button variant="default" size="sm" onClick={() => setBatchOpenDay(true)}>Добавить</Button>
-                      </div>
-                    </div>
-                  )}
                   <ScheduleGridDay
                     date={selectedDate}
                     sessions={rows}
@@ -525,17 +526,6 @@ export function ScheduleTab() {
 
               {gridDetailMode === 'range' && (
                 <>
-                  {showBatchBarRange && (
-                    <div className="mb-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <div>
-                        <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); }}>Очистить выбор</Button>
-                        <Button variant="default" size="sm" onClick={() => setBatchOpenRange(true)}>Добавить</Button>
-                      </div>
-                    </div>
-                  )}
                   <ScheduleGridRange
                     fromDateKey={from}
                     days={rangeDays}
