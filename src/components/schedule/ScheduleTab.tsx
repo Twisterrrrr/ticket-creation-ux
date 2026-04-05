@@ -404,7 +404,7 @@ export function ScheduleTab() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-h-[36px]">
               {viewMode === 'table' && !showBatchBarDay && !showBatchBarRange ? (
                 <Button variant="default" size="sm" className="gap-2" onClick={() => setCreating(true)}>
                   <Plus className="h-4 w-4" /> Добавить сеанс
