@@ -335,13 +335,43 @@ export function ScheduleTab() {
     <TooltipProvider>
       <Card>
         <CardHeader className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Расписание
             </CardTitle>
+          </div>
 
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
+                {([
+                  { key: 'day' as const, label: 'День', days: 1 },
+                  { key: '7' as const, label: '7 дней', days: 7 },
+                  { key: '14' as const, label: '14 дней', days: 14 },
+                  { key: '30' as const, label: '30 дней', days: 30 },
+                  { key: 'custom' as const, label: 'Произвольно', days: 0 },
+                ]).map(({ key, label, days }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`rounded-full px-2 py-0.5 ${rangePreset === key ? 'bg-background text-foreground shadow-sm' : ''}`}
+                    onClick={() => {
+                      setRangePreset(key);
+                      setSelectionDay(new Set());
+                      setSelectionRange(new Set());
+                      setSelectedSessions([]);
+                      if (days > 0) {
+                        setFrom(isoToday());
+                        setTo(addDaysIso(isoToday(), days - 1));
+                      }
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
                 <button
                   type="button"
@@ -359,6 +389,22 @@ export function ScheduleTab() {
                 </button>
               </div>
 
+              {rangePreset === 'custom' && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px] text-xs" />
+                  <span className="text-muted-foreground">—</span>
+                  <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px] text-xs" />
+                </div>
+              )}
+
+              {rangePreset === 'day' && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setTo(e.target.value); }} className="w-[150px] text-xs" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
               {!showBatchBarDay && !showBatchBarRange ? (
                 <Button variant="default" size="sm" className="gap-2" onClick={() => setCreating(true)}>
                   <Plus className="h-4 w-4" /> Добавить сеанс
@@ -380,48 +426,6 @@ export function ScheduleTab() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-1 py-0.5 text-[10px] text-muted-foreground">
-              {([
-                { key: 'day' as const, label: 'День', days: 1 },
-                { key: '7' as const, label: '7 дней', days: 7 },
-                { key: '14' as const, label: '14 дней', days: 14 },
-                { key: '30' as const, label: '30 дней', days: 30 },
-                { key: 'custom' as const, label: 'Произвольно', days: 0 },
-              ]).map(({ key, label, days }) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`rounded-full px-2 py-0.5 ${rangePreset === key ? 'bg-background text-foreground shadow-sm' : ''}`}
-                  onClick={() => {
-                    setRangePreset(key);
-                    setSelectionDay(new Set());
-                    setSelectionRange(new Set());
-                    setSelectedSessions([]);
-                    if (days > 0) {
-                      setFrom(isoToday());
-                      setTo(addDaysIso(isoToday(), days - 1));
-                    }
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {rangePreset === 'custom' && (
-              <div className="flex items-center gap-2 text-sm">
-                <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px] text-xs" />
-                <span className="text-muted-foreground">—</span>
-                <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px] text-xs" />
-              </div>
-            )}
-
-            {rangePreset === 'day' && (
-              <div className="flex items-center gap-2 text-sm">
-                <Input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setTo(e.target.value); }} className="w-[150px] text-xs" />
-              </div>
-            )}
-
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
