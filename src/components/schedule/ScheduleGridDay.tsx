@@ -92,6 +92,12 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds,
     return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
   }, [date]);
 
+  const isWeekendDay = useMemo(() => {
+    const d = new Date(`${date}T00:00:00`);
+    const day = d.getDay();
+    return day === 0 || day === 6;
+  }, [date]);
+
   return (
     <div
       className="mt-4 rounded-lg border border-border select-none"
