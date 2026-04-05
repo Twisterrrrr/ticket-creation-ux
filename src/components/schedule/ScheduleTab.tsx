@@ -511,17 +511,6 @@ export function ScheduleTab() {
             <>
               {gridDetailMode === 'day' && (
                 <>
-                  {showBatchBarDay && (
-                    <div className="mb-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <div>
-                        <span>Новых слотов: <span className="font-medium text-foreground">{selectionDay.size}</span></span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectionDay(new Set()); }}>Очистить выбор</Button>
-                        <Button variant="default" size="sm" onClick={() => setBatchOpenDay(true)}>Добавить</Button>
-                      </div>
-                    </div>
-                  )}
                   <ScheduleGridDay
                     date={selectedDate}
                     sessions={rows}
