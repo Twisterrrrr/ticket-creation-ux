@@ -104,11 +104,11 @@ export function ScheduleGridDay({ date, sessions, selection, selectedSessionIds,
       onPointerUp={handlePointerUp}
       onContextMenu={handleContextMenu}
     >
-      <div className="flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+      <div className={`flex items-center justify-between border-b border-border px-3 py-2 text-xs ${isWeekendDay ? 'bg-green-50 text-green-700' : 'bg-muted/50 text-muted-foreground'}`}>
         <div className="flex items-center gap-2">
           <CalendarClock className="h-3.5 w-3.5" />
           <span>Сетка за день</span>
-          <span className="font-medium text-foreground">{headerDateLabel}</span>
+          <span className={`font-medium ${isWeekendDay ? 'text-green-800' : 'text-foreground'}`}>{headerDateLabel}</span>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
