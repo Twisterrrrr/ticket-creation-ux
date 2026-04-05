@@ -371,7 +371,7 @@ export function ScheduleTab() {
                 </div>
               ) : viewMode === 'grid' && gridDetailMode !== 'day' && showBatchBarRange ? (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Новых часов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>
+                  <span>Новых слотов: <span className="font-medium text-foreground">{selectionRange.size}</span></span>
                   <Button variant="outline" size="sm" onClick={() => { setSelectionRange(new Set()); }}>Очистить выбор</Button>
                   <Button variant="default" size="sm" onClick={() => setBatchOpenRange(true)}>Добавить</Button>
                 </div>
